@@ -28,7 +28,7 @@ def download_files(urls: dict = None, directory: str = 'data'):
         os.makedirs(directory)
     if urls is None:
         urls = {'images': 'http://vis-www.cs.umass.edu/fddb/originalPics.tar.gz',
-                'annotations': 'http://vis-www.cs.umass.edu/fddb/originalPics.tar.gz',
+                'annotations': 'http://vis-www.cs.umass.edu/fddb/FDDB-folds.tgz',
                 'readme': 'http://vis-www.cs.umass.edu/fddb/README.txt'}
     # Loop through each URL and download the file
     for key, url in urls.items():

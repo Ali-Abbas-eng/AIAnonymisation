@@ -2,3 +2,5 @@
 /.ipynb_checkpoints/
 custom_trainer.py
 /output/
+/__pycache__/
+/.idea/

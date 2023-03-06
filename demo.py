@@ -80,8 +80,6 @@ def train_and_evaluate_model(model_name):
     trainer.resume_or_load(resume=False)
     trainer.train()
 
-    evaluator = trainer.build_evaluator(cfg, dataset_name=cfg.DATA)
-
 
 if __name__ == '__main__':
     networks = ['COCO-Detection/retinanet_R_50_FPN_1x.yaml',

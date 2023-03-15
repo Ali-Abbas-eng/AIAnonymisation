@@ -34,8 +34,9 @@ def download_dataset(url: str,
 
     # Create a directory to store the downloaded dataset if it does not exist
     data_directory = os.path.join(data_directory, dataset_name)
-    if not os.path.isdir(data_directory):
-        os.makedirs(data_directory)
+    os.makedirs(data_directory, exist_ok=True)
+    os.makedirs(os.path.join(data_directory, split), exist_ok=True)
+
 
     # Iterate over the dataset, extract image data, and save it to the data directory
     for index, batch in tqdm(enumerate(celeb_a_test), total=len(celeb_a_test)):

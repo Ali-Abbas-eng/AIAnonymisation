@@ -9,7 +9,12 @@ import itertools
 from detectron2.structures import BoxMode
 
 
-def download_dataset(url: str, split: str, dataset_name: str, starting_index: int = 0, category_id: int = 0):
+def download_dataset(url: str,
+                     split: str,
+                     dataset_name: str,
+                     starting_index: int = 0,
+                     category_id: int = 0,
+                     data_directory: str = 'data'):
     """
     Download a dataset from a given URL, split, and dataset name.
 
@@ -20,6 +25,7 @@ def download_dataset(url: str, split: str, dataset_name: str, starting_index: in
     datasets in the process).
     :param category_id: int, the identification number of the class present in this dataset (0 for face 1 for license
     plate)
+    :param data_directory: str, the directory to which data will be saved
     :return: None
     """
     dataset_dicts = []
@@ -27,7 +33,7 @@ def download_dataset(url: str, split: str, dataset_name: str, starting_index: in
     celeb_a_test = deeplake.load(url).pytorch(num_workers=0, batch_size=1, shuffle=False)
 
     # Create a directory to store the downloaded dataset if it does not exist
-    data_directory = os.path.join('data', dataset_name)
+    data_directory = os.path.join(data_directory, dataset_name)
     if not os.path.isdir(data_directory):
         os.makedirs(data_directory)
 
@@ -80,7 +86,12 @@ if __name__ == '__main__':
     parser.add_argument('--dataset_name', type=str, help='Name of the dataset')
     parser.add_argument('--starting_index', type=int, help='Last index in the previous dataset', default=0)
     parser.add_argument('--category_id', type=int, help='0 for faces, 1 for license plates', default=0)
+    parser.add_argument('--data_directory', type=str, help='Where to save downloaded dataset', default='data')
     args = parser.parse_args()
 
     # Call the download_dataset function with named arguments
-    download_dataset(url=args.url, split=args.split, dataset_name=args.dataset_name, starting_index=args.starting_index)
+    download_dataset(url=args.url,
+                     split=args.split,
+                     dataset_name=args.dataset_name,
+                     starting_index=args.starting_index,
+                     data_directory=args.data_directory)

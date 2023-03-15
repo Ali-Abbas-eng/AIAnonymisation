@@ -1,9 +1,9 @@
-python download_dataset.py --url hub://activeloop/wider-face-train --split train --dataset_name WIDER_FACE --starting_index 0 --category_id 0
-python download_dataset.py --url hub://activeloop/celeb-a-train --split train --dataset_name CELEB_A --starting_index 12880 --category_id 0
+python download_dataset.py --url hub://activeloop/wider-face-train --split train --dataset_name WIDER_FACE --starting_index 0 --category_id 0 --data_directory /content/drive/MyDrive/data
+python download_dataset.py --url hub://activeloop/celeb-a-train --split train --dataset_name CELEB_A --starting_index 12880 --category_id 0 --data_directory /content/drive/MyDrive/data
 
 
-python download_dataset.py --url hub://activeloop/wider-face-val --split val --dataset_name WIDER_FACE --starting_index 0 --category_id 0
-python download_dataset.py --url hub://activeloop/celeb-a-val --split val --dataset_name CELEB_A --starting_index 3226 --category_id 0
+python download_dataset.py --url hub://activeloop/wider-face-val --split val --dataset_name WIDER_FACE --starting_index 0 --category_id 0 --data_directory /content/drive/MyDrive/data
+python download_dataset.py --url hub://activeloop/celeb-a-val --split val --dataset_name CELEB_A --starting_index 3226 --category_id 0 --data_directory /content/drive/MyDrive/data
 
 
-python download_dataset.py --url hub://activeloop/celeb-a-test --split test--dataset_name CELEB_A --starting_index 0 --category_id 0
+python download_dataset.py --url hub://activeloop/celeb-a-test --split test--dataset_name CELEB_A --starting_index 0 --category_id 0 --data_directory /content/drive/MyDrive/data

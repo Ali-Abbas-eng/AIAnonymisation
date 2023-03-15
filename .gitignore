@@ -3,3 +3,4 @@
 custom_trainer.py
 /output/
 /.idea/
+/__pycache__/

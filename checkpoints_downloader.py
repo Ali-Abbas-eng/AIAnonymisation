@@ -45,7 +45,7 @@ def download_files(urls: dict, directory: str = 'models'):
 
 
 def get_info():
-    Faste_R_CNN_variations = [
+    faste_r_cnn_variations = [
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_R_50_C4_1x/137257644/model_final_721ade.pkl',
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_R_50_DC5_1x/137847829/model_final_51d356.pkl',
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_R_50_FPN_1x/137257794/model_final_b275ba.pkl',
@@ -58,25 +58,26 @@ def get_info():
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x/139173657/model_final_68b088.pkl',
     ]
 
-    RetinaNet_variations = [
+    retina_net_variations = [
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/retinanet_R_50_FPN_1x/190397773/model_final_bfca0b.pkl',
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/retinanet_R_50_FPN_3x/190397829/model_final_5bd44e.pkl',
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/retinanet_R_101_FPN_3x/190397697/model_final_971ab9.pkl',
     ]
 
-    RPN_and_Fast_R_CNN_variations = [
+    rpn_and_fast_r_cnn_variations = [
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/rpn_R_50_C4_1x/137258005/model_final_450694.pkl',
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/rpn_R_50_FPN_1x/137258492/model_final_02ce48.pkl',
         'https://dl.fbaipublicfiles.com/detectron2/COCO-Detection/fast_rcnn_R_50_FPN_1x/137635226/model_final_e5f7ce.pkl',
     ]
 
-    Faste_R_CNN_variations_dictionary = {url.split('/')[-3]: url for url in Faste_R_CNN_variations}
-    RetinaNet_variations_dictionary = {url.split('/')[-3]: url for url in RetinaNet_variations}
-    RPN_and_Fast_R_CNN_variations_dictionary = {url.split('/')[-3]: url for url in RPN_and_Fast_R_CNN_variations}
+    faste_r_cnn_variations_dictionary = {url.split('/')[-3]: url for url in faste_r_cnn_variations}
+    retina_net_variations_dictionary = {url.split('/')[-3]: url for url in retina_net_variations}
+    rpn_and_fast_r_cnn_variations_dictionary = {url.split('/')[-3]: url for url in rpn_and_fast_r_cnn_variations}
 
-    return [(Faste_R_CNN_variations_dictionary, os.path.join('models', 'Faste_R_CNN_variations')),
-            (RetinaNet_variations_dictionary, os.path.join('models', 'RetinaNet_variations')),
-            (RPN_and_Fast_R_CNN_variations_dictionary, os.path.join('models', 'RPN_and_Fast_R_CNN_variations'))]
+    return [(faste_r_cnn_variations_dictionary, os.path.join('models', 'faste_r_cnn_variations')),
+            (retina_net_variations_dictionary, os.path.join('models', 'retina_net_variations')),
+            (rpn_and_fast_r_cnn_variations_dictionary, os.path.join('models', 'rpn_and_fast_r_cnn_variations'))]
+
 
 if __name__ == '__main__':
     [download_files(urls_dict, directory) for urls_dict, directory in get_info()]

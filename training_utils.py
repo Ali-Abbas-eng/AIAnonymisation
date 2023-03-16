@@ -10,50 +10,6 @@ from detectron2.model_zoo import get_config_file
 from detectron2.engine.hooks import HookBase
 
 
-class TrainingSessionManagementHook(HookBase):
-    """
-    A custom hook for early stopping training in Detectron2.
-
-    This hook monitors the validation loss during training and reduces the learning rate or stops training if the
-    validation loss does not improve for a specified number of steps (max_patience).
-
-    :param max_patience: The maximum number of steps to wait for an improvement in validation
-    loss before reducing the learning rate or stopping training.
-    :type max_patience: int
-    """
-
-    def __init__(self, max_patience):
-        # Initialize instance variables
-        self.max_patience = max_patience  # maximum patience before reducing learning rate or stopping training
-        self.patience = 0  # current patience counter
-        self.best_val_loss = float('inf')  # best validation loss seen so far
-
-    def after_step(self):
-        """
-        Called after each training step. Monitors validation loss and reduces learning rate or stops training if
-        necessary.
-        """
-
-        # Get current validation loss from trainer storage
-        cur_loss = self.trainer.storage.latest()['total_loss'][0]
-
-        # Check if validation loss has improved compared to best_val_loss
-        if cur_loss < self.best_val_loss:
-            # If validation loss has improved, update best_val_loss and reset patience counter
-            self.best_val_loss = cur_loss
-            self.patience = 0
-        else:
-            # If validation loss has not improved, increment patience counter
-            self.patience += 1
-
-            # Check if patience has exceeded max_patience
-        if self.patience >= self.max_patience:
-            # If learning rate has already been reduced once, stop training now by calling trainer.terminate()
-            print(f"Early stopping at iteration {self.trainer.iter}")
-            self.trainer.terminate()
-
-
-
 class Trainer(DefaultTrainer):
     """
     A custom trainer class that inherits the DefaultTrainer class from Detectron2.

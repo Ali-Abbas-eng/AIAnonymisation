@@ -30,7 +30,7 @@ def download_dataset(url: str,
     """
     dataset_dicts = []
     # Load the dataset using deeplake
-    dataset = deeplake.load(url).pytorch(num_workers=0, batch_size=1, shuffle=False)
+    dataset = deeplake.load(url).pytorch(num_workers=2, batch_size=1, shuffle=False)
 
     # Create a directory to store the downloaded dataset if it does not exist
     data_directory = os.path.join(data_directory, dataset_name)

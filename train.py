@@ -47,6 +47,12 @@ def train(network_base_name: str,
     # Create trainer object with configurations
     trainer = Trainer(configurations)
 
+    # Register hooks for managing training session
+    # (e.g., reducing learning rate when no improvement is observed)
+    trainer.register_hooks(
+        [TrainingSessionManagementHook(max_patience=max_patience,
+                                       lr_factor=learning_rate_decay_factor)])
+
     # Train model
     trainer.train()
 

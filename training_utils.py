@@ -222,10 +222,10 @@ def get_cfg(network_base_name: str,
     configurations.OUTPUT_DIR = os.path.join('output', network_base_name)
 
     # Set training dataset
-    configurations.DATASET.TRAIN = ('train',)
+    configurations.DATASETS.TRAIN = ('train',)
 
     # Set test dataset
-    configurations.DATASET.TEST = ('test',)
+    configurations.DATASETS.TEST = ('test',)
 
     # Set batch size
     configurations.SOLVER.IMS_PER_BATCH = batch_size
@@ -241,10 +241,5 @@ def get_cfg(network_base_name: str,
 
     # Disable learning rate schedule
     configurations.SOLVER.LR_SCHEDULER_NAME = ""
-
-    # Register hooks for managing training session
-    # (e.g., reducing learning rate when no improvement is observed)
-    configurations.register_hooks(
-        [TrainingSessionManagementHook(max_patience=max_patience, lr_factor=learning_rate_decay_factor)])
 
     return configurations

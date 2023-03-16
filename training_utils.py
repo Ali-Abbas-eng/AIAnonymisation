@@ -35,7 +35,7 @@ class TrainingSessionManagementHook(HookBase):
         """
 
         # Get current validation loss from trainer storage
-        cur_loss = self.trainer.storage.latest()['total_loss']
+        cur_loss = self.trainer.storage.latest()['total_loss'][0]
 
         # Check if validation loss has improved compared to best_val_loss
         if cur_loss < self.best_val_loss:

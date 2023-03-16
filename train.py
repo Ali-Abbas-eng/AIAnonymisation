@@ -1,4 +1,4 @@
-from training_utils import register_datasets, get_cfg, Trainer, TrainingSessionManagementHook
+from training_utils import register_datasets, get_cfg, Trainer
 import argparse
 
 
@@ -44,11 +44,6 @@ def train(network_base_name: str,
 
     # Create trainer object with configurations
     trainer = Trainer(configurations)
-
-    # Register hooks for managing training session
-    # (e.g., reducing learning rate when no improvement is observed)
-    trainer.register_hooks(
-        [TrainingSessionManagementHook(max_patience=max_patience)])
 
     # Train model
     trainer.train()

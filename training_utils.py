@@ -22,7 +22,7 @@ class TrainingSessionManagementHook(HookBase):
     :type max_patience: int
     """
 
-    def __init__(self, max_patience, lr_factor):
+    def __init__(self, max_patience):
         # Initialize instance variables
         self.max_patience = max_patience  # maximum patience before reducing learning rate or stopping training
         self.patience = 0  # current patience counter
@@ -35,12 +35,12 @@ class TrainingSessionManagementHook(HookBase):
         """
 
         # Get current validation loss from trainer storage
-        cur_val_loss = self.trainer.storage.latest()['validation_loss']
+        cur_loss = self.trainer.storage.latest()['total_loss']
 
         # Check if validation loss has improved compared to best_val_loss
-        if cur_val_loss < self.best_val_loss:
+        if cur_loss < self.best_val_loss:
             # If validation loss has improved, update best_val_loss and reset patience counter
-            self.best_val_loss = cur_val_loss
+            self.best_val_loss = cur_loss
             self.patience = 0
         else:
             # If validation loss has not improved, increment patience counter

@@ -183,9 +183,12 @@ def register_datasets(data_directory: str,
         MetadataCatalog.get(split).set(thing_classes=thing_classes)
 
 
-def get_cfg(network_base_name: str, weights_path: str, yaml_url: str,
+def get_cfg(network_base_name: str,
+            weights_path: str,
+            yaml_url: str,
             initial_learning_rate: float = 0.00025,
-            num_steps: int = 5000,
+            train_steps: int = 5000,
+            eval_freq: int = 5000,
             batch_size: int = 2,
             max_patience: int = 50,
             learning_rate_decay_factor: float = .9):
@@ -196,7 +199,8 @@ def get_cfg(network_base_name: str, weights_path: str, yaml_url: str,
     :param weights_path: The path to the pre-trained weights file.
     :param yaml_url: The URL to the YAML configuration file.
     :param initial_learning_rate: The initial learning rate for training. (default=0.00025)
-    :param num_steps: The number of steps to train for. (default=5000)
+    :param train_steps: The number of steps to train for. (default=5000)
+    :param eval_freq: The frequency of evaluation w.r.t training steps. (default=5000)
     :param batch_size: The batch size to use during training. (default=2)
     :param max_patience: The maximum number of steps without improvement before reducing the learning rate. (default=50)
     :param learning_rate_decay_factor: learning rate reduction factor to apply if max_patience is reached. (default=.9)
@@ -227,7 +231,10 @@ def get_cfg(network_base_name: str, weights_path: str, yaml_url: str,
     configurations.SOLVER.IMS_PER_BATCH = batch_size
 
     # Set maximum number of iterations
-    configurations.SOLVER.MAX_ITER = num_steps
+    configurations.SOLVER.MAX_ITER = train_steps
+
+    # Set the frequency of evaluation
+    configurations.TEST.EVAL_PERIOD = eval_freq
 
     # Set initial learning rate
     configurations.SOLVER.BASE_LR = initial_learning_rate

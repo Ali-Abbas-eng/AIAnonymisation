@@ -30,16 +30,15 @@ def download_dataset(url: str,
     """
     dataset_dicts = []
     # Load the dataset using deeplake
-    celeb_a_test = deeplake.load(url).pytorch(num_workers=0, batch_size=1, shuffle=False)
+    dataset = deeplake.load(url).pytorch(num_workers=0, batch_size=1, shuffle=False)
 
     # Create a directory to store the downloaded dataset if it does not exist
     data_directory = os.path.join(data_directory, dataset_name)
     os.makedirs(data_directory, exist_ok=True)
     os.makedirs(os.path.join(data_directory, split), exist_ok=True)
 
-
     # Iterate over the dataset, extract image data, and save it to the data directory
-    for index, batch in tqdm(enumerate(celeb_a_test), total=len(celeb_a_test)):
+    for index, batch in tqdm(enumerate(dataset), total=len(dataset)):
         record = {}
         # Extract the image data and bounding boxes from the batch
         image = np.array(batch['images'][0]).astype(np.uint8)

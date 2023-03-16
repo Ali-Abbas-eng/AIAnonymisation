@@ -137,21 +137,28 @@ def create_dataset_dicts(split: str, data_directory: str = 'data'):
         a list of dictionaries containing information about the dataset as a whole
 
     """
-    # initialise an empty list to hold the data objects
-    data = []
+    total_data = os.path.join(data_directory, f'{split}.json')
+    if os.path.isfile(total_data):
+        data = json.load(open(total_data, 'r'))
+        return data
 
-    # recursively iterate through the data directory and look for the json files
-    for root, dirs, files in os.walk(data_directory):
-        # iterate through all the files contained the current directory
-        for file in files:
-            # is the current file is a json file
-            if file.endswith('.json'):
-                # if the file name contains the name of the split of interest
-                if split in file:
-                    # load the content of the file (which is a list) and extend the data list we initialised earlier
-                    data.extend(json.load(open(os.path.join(root, file))))
-    # return the list of dictionaries that represents the datasets
-    return data
+    else:
+        # initialise an empty list to hold the data objects
+        data = []
+
+        # recursively iterate through the data directory and look for the json files
+        for root, dirs, files in os.walk(data_directory):
+            # iterate through all the files contained the current directory
+            for file in files:
+                # is the current file is a json file
+                if file.endswith('.json'):
+                    # if the file name contains the name of the split of interest
+                    if split in file:
+                        # load the content of the file (which is a list) and extend the data list we initialised earlier
+                        data.extend(json.load(open(os.path.join(root, file))))
+        json.dump(data, open(total_data, 'w'))
+        # return the list of dictionaries that represents the datasets
+        return data
 
 
 def register_datasets(data_directory: str,
@@ -177,7 +184,7 @@ def register_datasets(data_directory: str,
     # Loop over all three splits (train, test, valid)
     for split in ['train', 'test', 'valid']:
         # Register the current split with Detectron2 using DatasetCatalog.register()
-        DatasetCatalog.register(split, data_getter)
+        DatasetCatalog.register(split, lambda data_split=split: data_getter(data_split=data_split))
 
         # Set thing_classes for the current split using MetadataCatalog.get().set()
         MetadataCatalog.get(split).set(thing_classes=thing_classes)
@@ -189,9 +196,7 @@ def get_cfg(network_base_name: str,
             initial_learning_rate: float = 0.00025,
             train_steps: int = 5000,
             eval_freq: int = 5000,
-            batch_size: int = 2,
-            max_patience: int = 50,
-            learning_rate_decay_factor: float = .9):
+            batch_size: int = 2):
     """
     This function generates a configuration object for training a neural network.
 
@@ -202,8 +207,6 @@ def get_cfg(network_base_name: str,
     :param train_steps: The number of steps to train for. (default=5000)
     :param eval_freq: The frequency of evaluation w.r.t training steps. (default=5000)
     :param batch_size: The batch size to use during training. (default=2)
-    :param max_patience: The maximum number of steps without improvement before reducing the learning rate. (default=50)
-    :param learning_rate_decay_factor: learning rate reduction factor to apply if max_patience is reached. (default=.9)
 
     :return configurations:
         A configuration object with all specified parameters set.

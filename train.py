@@ -25,8 +25,8 @@ def train(network_base_name: str,
     :param train_steps: The number of training steps to perform. Default is 5000.
     :param eval_steps: The number of evaluation steps to perform. Default is 5000.
     :param batch_size: The batch size to use for training. Default is 2.
-    :param max_patience: The maximum number of steps without improvement before stopping training. Default is 50.
-    :param learning_rate_decay_factor: The factor by which to decay the learning rate. Default is .9.
+    :param max_patience: The maximum number of steps without improvement before reducing the learning rate. (default=50)
+    :param learning_rate_decay_factor: learning rate reduction factor to apply if max_patience is reached. (default=.9)
 
     """
 
@@ -40,9 +40,7 @@ def train(network_base_name: str,
                              initial_learning_rate=initial_learning_rate,
                              train_steps=train_steps,
                              eval_freq=eval_steps,
-                             batch_size=batch_size,
-                             max_patience=max_patience,
-                             learning_rate_decay_factor=learning_rate_decay_factor)
+                             batch_size=batch_size)
 
     # Create trainer object with configurations
     trainer = Trainer(configurations)

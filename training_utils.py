@@ -34,7 +34,8 @@ class TrainingSessionManagementHook(HookBase):
 
     def after_step(self):
         """
-        Called after each training step. Monitors validation loss and reduces learning rate or stops training if necessary.
+        Called after each training step. Monitors validation loss and reduces learning rate or stops training if
+        necessary.
         """
 
         # Get current validation loss from trainer storage
@@ -52,7 +53,8 @@ class TrainingSessionManagementHook(HookBase):
             # Check if patience has exceeded max_patience
         if self.patience >= self.max_patience:
             if not self.lr_reduced:
-                # If learning rate has not been reduced yet, reduce it now by multiplying with lr_factor and reset patience counter
+                # If learning rate has not been reduced yet, reduce it now by multiplying with
+                # lr_factor and reset patience counter
                 print(f"Reducing learning rate at iteration {self.trainer.iter}")
                 for param_group in self.trainer.optimizer.param_groups:
                     param_group['lr'] *= self.lr_factor
@@ -62,6 +64,7 @@ class TrainingSessionManagementHook(HookBase):
                 # If learning rate has already been reduced once, stop training now by calling trainer.terminate()
                 print(f"Early stopping at iteration {self.trainer.iter}")
                 self.trainer.terminate()
+
 
 class Trainer(DefaultTrainer):
     """
@@ -98,7 +101,8 @@ def convert_to_detectron2_usable_info():
     A function that converts a list of variations of a model to a format usable by Detectron2.
 
     Returns:
-        records (list): A list of dictionaries containing information about the model variations in a format usable by Detectron2.
+        records (list): A list of dictionaries containing information about the model variations in a format usable by
+        Detectron2.
     """
 
     # Get information about the model variations
@@ -155,7 +159,10 @@ def register_datasets(data_directory: str,
     """
     Registers datasets for training, testing, and validation in Detectron2.
 
-    This function registers datasets for training, testing, and validation in Detectron2 using the provided data directory and thing classes. The data directory should contain the data for all three splits (train, test, valid) in separate subdirectories. The thing classes should be a list of class names corresponding to the classes present in the dataset.
+    This function registers datasets for training, testing, and validation in Detectron2 using the provided data
+    directory and thing classes. The data directory should contain the data for all three splits (train, test, valid)
+    in separate subdirectories. The thing classes should be a list of class names corresponding to the classes present
+    in the dataset.
 
     :param data_directory: The path to the directory containing the data for all three splits (train, test, valid).
     :type data_directory: str
@@ -163,11 +170,12 @@ def register_datasets(data_directory: str,
     :type thing_classes: list
     """
 
+    # Define a function that returns a dataset dictionary for the current split using create_dataset_dicts()
+    def data_getter(data_split: str):
+        return create_dataset_dicts(split=data_split, data_directory=data_directory)
+
     # Loop over all three splits (train, test, valid)
     for split in ['train', 'test', 'valid']:
-        # Define a lambda function that returns a dataset dictionary for the current split using create_dataset_dicts()
-        data_getter = lambda split_=split: create_dataset_dicts(split=split_, data_directory=data_directory)
-
         # Register the current split with Detectron2 using DatasetCatalog.register()
         DatasetCatalog.register(split, data_getter)
 
@@ -191,7 +199,7 @@ def get_cfg(network_base_name: str, weights_path: str, yaml_url: str,
     :param num_steps: The number of steps to train for. (default=5000)
     :param batch_size: The batch size to use during training. (default=2)
     :param max_patience: The maximum number of steps without improvement before reducing the learning rate. (default=50)
-    :param learning_rate_decay_factor: The factor by which to reduce the learning rate when max_patience is reached. (default=.9)
+    :param learning_rate_decay_factor: learning rate reduction factor to apply if max_patience is reached. (default=.9)
 
     :return configurations:
         A configuration object with all specified parameters set.
@@ -233,5 +241,3 @@ def get_cfg(network_base_name: str, weights_path: str, yaml_url: str,
         [TrainingSessionManagementHook(max_patience=max_patience, lr_factor=learning_rate_decay_factor)])
 
     return configurations
-
-

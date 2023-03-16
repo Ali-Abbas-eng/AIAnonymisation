@@ -12,7 +12,7 @@ from detectron2.engine.hooks import HookBase
 
 class TrainingSessionManagementHook(HookBase):
     """
-    A custom hook for early stopping and learning rate decay during training in Detectron2.
+    A custom hook for early stopping training in Detectron2.
 
     This hook monitors the validation loss during training and reduces the learning rate or stops training if the
     validation loss does not improve for a specified number of steps (max_patience).
@@ -20,17 +20,13 @@ class TrainingSessionManagementHook(HookBase):
     :param max_patience: The maximum number of steps to wait for an improvement in validation
     loss before reducing the learning rate or stopping training.
     :type max_patience: int
-    :param lr_factor: The factor by which to reduce the learning rate when max_patience is reached for the first time.
-    :type lr_factor: float
     """
 
     def __init__(self, max_patience, lr_factor):
         # Initialize instance variables
         self.max_patience = max_patience  # maximum patience before reducing learning rate or stopping training
-        self.lr_factor = lr_factor  # factor by which to reduce learning rate
         self.patience = 0  # current patience counter
         self.best_val_loss = float('inf')  # best validation loss seen so far
-        self.lr_reduced = False  # flag indicating if learning rate has been reduced
 
     def after_step(self):
         """
@@ -52,18 +48,10 @@ class TrainingSessionManagementHook(HookBase):
 
             # Check if patience has exceeded max_patience
         if self.patience >= self.max_patience:
-            if not self.lr_reduced:
-                # If learning rate has not been reduced yet, reduce it now by multiplying with
-                # lr_factor and reset patience counter
-                print(f"Reducing learning rate at iteration {self.trainer.iter}")
-                for param_group in self.trainer.optimizer.param_groups:
-                    param_group['lr'] *= self.lr_factor
-                self.lr_reduced = True
-                self.patience = 0
-            else:
-                # If learning rate has already been reduced once, stop training now by calling trainer.terminate()
-                print(f"Early stopping at iteration {self.trainer.iter}")
-                self.trainer.terminate()
+            # If learning rate has already been reduced once, stop training now by calling trainer.terminate()
+            print(f"Early stopping at iteration {self.trainer.iter}")
+            self.trainer.terminate()
+
 
 
 class Trainer(DefaultTrainer):
@@ -241,8 +229,5 @@ def get_cfg(network_base_name: str,
 
     # Set initial learning rate
     configurations.SOLVER.BASE_LR = initial_learning_rate
-
-    # Disable learning rate schedule
-    configurations.SOLVER.LR_SCHEDULER_NAME = ""
 
     return configurations

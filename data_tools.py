@@ -19,19 +19,26 @@ WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER FACE', 'w
 WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face.json')
 
 
-CCPD_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CCPD2019')
-CCPD_IMAGES_DIRECTORIES = [
-    'ccpd_base',
-    'ccpd_blur',
-    'ccpd_challenge',
-    'ccpd_db',
-    'ccpd_fn',
-    'ccpd_np',
-    'ccpd_rotate',
-    'ccpd_tilt',
-    'ccpd_weather'
-]
+CELEB_A_NUM_TRAIN_CANDIDATES = 200
+CELEB_A_NUM_TEST_CANDIDATES = 100
+CELEB_A_NUM_VAL_CANDIDATES = 100
 
+WIDER_FACE_NUM_TRAIN_CANDIDATES = 200
+WIDER_FACE_NUM_TEST_CANDIDATES = 100
+WIDER_FACE_NUM_VAL_CANDIDATES = 100
+
+CCPD_NUM_TRAIN_CANDIDATES = 200
+CCPD_NUM_TEST_CANDIDATES = 100
+CCPD_NUM_VAL_CANDIDATES = 100
+
+
+FINAL_DATA_PATH = 'data'
+FACE_DATA_PATH = os.path.join(FINAL_DATA_PATH, 'face')
+CCPD_DATA_PATH = os.path.join(FINAL_DATA_PATH, 'license_plates')
+DATASET_INFO_FILE = os.path.join(FINAL_DATA_PATH, 'data.json')
+
+
+CCPD_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CCPD2019')
 CCPD_INFO_PATH = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
 
 

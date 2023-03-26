@@ -94,6 +94,9 @@ def select_from_data(json_file: str,
     # Create the face data path if it doesn't exist.
     os.makedirs(output_directory, exist_ok=True)
 
+    # initialise an empty list to hold the file names that hold the data splits temporarily
+    files = {}
+
     for split in start_indexes.keys():
         # Generate data for train, test and validation splits.
         indexes = indexer[:num_examples[split]]
@@ -106,29 +109,49 @@ def select_from_data(json_file: str,
         indexer = indexer[num_examples[split]:]
         temp_file = os.path.join(data_tools.FINAL_DATA_PATH, f'{new_file_base_name}_{split}_temp.json')
         json.dump(data, open(temp_file, 'w'))
+        files[split] = temp_file
+
+    return files
 
 
-if __name__ == '__main__':
-    # select_from_celeb_a()
-    # select_from_wider_face()
-    select_from_data(json_file=data_tools.CELEB_A_INFORMATION_FILE,
-                     start_indexes={'train': 0, 'test': 0, 'val': 0},
-                     new_file_base_name='celeb_a',
-                     num_examples=data_tools.CELEB_A_NUM_CANDIDATES,
-                     output_directory=data_tools.IMAGES_DATA_DIRECTORY)
+def merge(files):
+    for key, list_of_files in files.items():
+        data = []
+        for file in list_of_files:
+            new_data = json.load(open(file, 'r'))
+            data.extend(new_data)
+        json.dump(data, open(os.path.join(data_tools.FINAL_DATA_PATH, f'{key}_info.json'), 'w'))
 
-    select_from_data(json_file=data_tools.WIDER_FACE_INFORMATION_FILE,
-                     start_indexes=data_tools.CELEB_A_NUM_CANDIDATES,
-                     new_file_base_name='wider_face',
-                     num_examples=data_tools.WIDER_FACE_NUM_CANDIDATES,
-                     output_directory=data_tools.IMAGES_DATA_DIRECTORY)
+
+def select_candidates():
+    celeb_a_files = select_from_data(json_file=data_tools.CELEB_A_INFORMATION_FILE,
+                                     start_indexes={'train': 0, 'test': 0, 'val': 0},
+                                     new_file_base_name='celeb_a',
+                                     num_examples=data_tools.CELEB_A_NUM_CANDIDATES,
+                                     output_directory=data_tools.IMAGES_DATA_DIRECTORY)
+
+    wider_face_files = select_from_data(json_file=data_tools.WIDER_FACE_INFORMATION_FILE,
+                                        start_indexes=data_tools.CELEB_A_NUM_CANDIDATES,
+                                        new_file_base_name='wider_face',
+                                        num_examples=data_tools.WIDER_FACE_NUM_CANDIDATES,
+                                        output_directory=data_tools.IMAGES_DATA_DIRECTORY)
 
     ccpd_start_indexes = {
         key: data_tools.CELEB_A_NUM_CANDIDATES[key] + data_tools.WIDER_FACE_NUM_CANDIDATES[key]
         for key in ['train', 'test', 'val']
     }
-    select_from_data(json_file=data_tools.CCPD_INFORMATION_FILE,
-                     start_indexes=ccpd_start_indexes,
-                     new_file_base_name='ccpd_2019',
-                     num_examples=data_tools.CCPD_NUM_CANDIDATES,
-                     output_directory=data_tools.IMAGES_DATA_DIRECTORY)
+    ccpd_2019_files = select_from_data(json_file=data_tools.CCPD_INFORMATION_FILE,
+                                       start_indexes=ccpd_start_indexes,
+                                       new_file_base_name='ccpd_2019',
+                                       num_examples=data_tools.CCPD_NUM_CANDIDATES,
+                                       output_directory=data_tools.IMAGES_DATA_DIRECTORY)
+
+    merge({key: [celeb_a_files[key], wider_face_files[key], ccpd_2019_files[key]]
+           for key in ['train', 'test', 'val']})
+
+    [os.remove(os.path.join(data_tools.FINAL_DATA_PATH, file))
+     for file in os.listdir(data_tools.FINAL_DATA_PATH) if 'temp' in file]
+
+
+if __name__ == '__main__':
+    select_candidates()

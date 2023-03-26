@@ -67,6 +67,12 @@ def create_record(image_path: str, bounding_boxes: list, index: int, category_id
     record['height'], record['width'] = image.shape[:2]
     record['image_id'] = index
 
+    # Add the annotations to the record dictionary and return the record
+    record['annotations'] = get_annotations(bounding_boxes=bounding_boxes, category_id=category_id)
+    return record
+
+
+def get_annotations(bounding_boxes, category_id):
     # Initialize the annotations list and loop through the bounding boxes
     annotations = []
     for i in range(0, len(bounding_boxes), 4):
@@ -91,7 +97,4 @@ def create_record(image_path: str, bounding_boxes: list, index: int, category_id
             'iscrowd': 0
         }
         annotations.append(annotation)
-
-    # Add the annotations to the record dictionary and return the record
-    record['annotations'] = annotations
-    return record
+    return annotations

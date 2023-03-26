@@ -5,8 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
-import itertools
-from detectron2.structures import BoxMode
+from data_tools import get_annotations
 
 
 def download_dataset(url: str,
@@ -51,26 +50,8 @@ def download_dataset(url: str,
         record['file_name'] = image_path
         record['height'], record['width'] = image.shape[:2]
         record['image_id'] = index + starting_index
-        annotations = []
-
-        for i in range(0, len(bboxes), 4):
-            x_min, y_min, h, w = bboxes[i: i + 4]
-            x_max = x_min + h
-            y_max = y_min + w
-            poly = [
-                (x_min, y_min), (x_max, y_min),
-                (x_max, y_max), (x_min, y_max)
-            ]
-            poly = list(itertools.chain.from_iterable(poly))
-            annotation = {
-                'bbox': [x_min, y_min, x_max, y_max],
-                'bbox_mode': BoxMode.XYXY_ABS,
-                'segmentation': [poly],
-                'category_id': category_id,
-                'iscrowd': 0
-            }
-            annotations.append(annotation)
-        record['annotations'] = annotations
+        record['annotations'] = get_annotations(bounding_boxes=bboxes,
+                                                category_id=category_id)
         dataset_dicts.append(record)
     dataset_info_path = os.path.join(data_directory, f'{dataset_name}_{split}.json')
     with open(dataset_info_path, 'w') as f:

@@ -18,29 +18,31 @@ WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER FACE', 'w
 
 WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face.json')
 
+CELEB_A_NUM_CANDIDATES = {
+    'train': 30_000,
+    'test': 10_000,
+    'val': 10_000
+}
 
-CELEB_A_NUM_TRAIN_CANDIDATES = 200
-CELEB_A_NUM_TEST_CANDIDATES = 100
-CELEB_A_NUM_VAL_CANDIDATES = 100
+WIDER_FACE_NUM_CANDIDATES = {
+    'train': 10_000,
+    'test': 2000,
+    'val': 2000
+}
 
-WIDER_FACE_NUM_TRAIN_CANDIDATES = 200
-WIDER_FACE_NUM_TEST_CANDIDATES = 100
-WIDER_FACE_NUM_VAL_CANDIDATES = 100
-
-CCPD_NUM_TRAIN_CANDIDATES = 200
-CCPD_NUM_TEST_CANDIDATES = 100
-CCPD_NUM_VAL_CANDIDATES = 100
-
+CCPD_NUM_CANDIDATES = {
+    'train': 40_000,
+    'test': 12_000,
+    'val': 12_000
+}
 
 FINAL_DATA_PATH = 'data'
-FACE_DATA_PATH = os.path.join(FINAL_DATA_PATH, 'face')
-CCPD_DATA_PATH = os.path.join(FINAL_DATA_PATH, 'license_plates')
-DATASET_INFO_FILE = os.path.join(FINAL_DATA_PATH, 'data.json')
+IMAGES_DATA_DIRECTORY = os.path.join(FINAL_DATA_PATH, 'images')
 
+DATASET_INFO_FILE = os.path.join(FINAL_DATA_PATH, 'info.json')
 
 CCPD_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CCPD2019')
-CCPD_INFO_PATH = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
-
+CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
 
 
 def create_record(image_path: str, bounding_boxes: list, index: int, category_id: int = 0):

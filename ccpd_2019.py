@@ -1,4 +1,6 @@
 import os
+
+import detectron2.structures
 from tqdm.auto import tqdm
 import data_tools
 import json
@@ -65,7 +67,11 @@ def generate_dataset_registration_info(data_directory: str = data_tools.CCPD_IMA
                         file_path = os.path.join(root, file)
 
                         # Create a record and append it to the dataset_dicts
-                        record = data_tools.create_record(image_path=file_path, bounding_boxes=coordinates, category_id=1, index=index)
+                        record = data_tools.create_record(image_path=file_path,
+                                                          bounding_boxes=coordinates,
+                                                          bbox_format=detectron2.structures.BoxMode.XYXY_ABS,
+                                                          category_id=1,
+                                                          index=index)
                         dataset_dicts.append(record)
                         index += 1
 

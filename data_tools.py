@@ -46,8 +46,7 @@ CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
 def create_record(image_path: str,
                   bounding_boxes: list,
                   index: int,
-                  category_id: int = 0,
-                  bbox_format: str = BoxMode.XYXY_ABS):
+                  category_id: int = 0):
     """
     This function creates a record for a single image.
 
@@ -56,8 +55,6 @@ def create_record(image_path: str,
         bounding_boxes (list): The list of bounding boxes.
         index (int): The index of the image.
         category_id (int): The category id.
-        bbox_format (int): the format to represent the bounding box (defaults to XYXY that is the upper left and
-                            bottom right corners of the bounding box).
     Returns:
         record (dict): The record for the image.
     """
@@ -72,19 +69,16 @@ def create_record(image_path: str,
 
     # Add the annotations to the record dictionary and return the record
     record['annotations'] = get_annotations(bounding_boxes=bounding_boxes,
-                                            category_id=category_id,
-                                            bbox_format=bbox_format)
+                                            category_id=category_id)
     return record
 
 
-def get_annotations(bounding_boxes, category_id, bbox_format):
+def get_annotations(bounding_boxes, category_id):
     # Initialize the annotations list and loop through the bounding boxes
     annotations = []
     for i in range(0, len(bounding_boxes), 4):
         # Get the bounding box coordinates
-        x_min, y_min, h, w = bounding_boxes[i: i + 4]
-        x_max = x_min + h
-        y_max = y_min + w
+        x_min, y_min, x_max, y_max = bounding_boxes[i: i + 4]
 
         # Create the polygon and flatten it
         poly = [
@@ -96,7 +90,7 @@ def get_annotations(bounding_boxes, category_id, bbox_format):
         # Create the annotation dictionary and append it to the annotations list
         annotation = {
             'bbox': [x_min, y_min, x_max, y_max],
-            'bbox_mode': bbox_format,
+            'bbox_mode': BoxMode.XYXY_ABS,
             'segmentation': [poly],
             'category_id': category_id,
             'iscrowd': 0

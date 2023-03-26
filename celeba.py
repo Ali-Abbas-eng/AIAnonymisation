@@ -48,7 +48,6 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike = data
         example_record = data_tools.create_record(image_path=image_path,
                                                   index=index,
                                                   bounding_boxes=[x_min, y_min, x_max, y_max],
-                                                  bbox_format=detectron2.structures.BoxMode.XYXY_ABS,
                                                   category_id=0)
 
         # Add the example record to the dataset records list

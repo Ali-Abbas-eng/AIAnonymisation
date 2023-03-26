@@ -47,7 +47,6 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike = None
             record = data_tools.create_record(image_path=image_path,
                                               bounding_boxes=bboxes,
                                               index=file_id,
-                                              bbox_format=detectron2.structures.BoxMode.XYXY_ABS,
                                               category_id=0)
             dataset_dicts.append(record)
 

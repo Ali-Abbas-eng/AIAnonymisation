@@ -69,7 +69,6 @@ def generate_dataset_registration_info(data_directory: str = data_tools.CCPD_IMA
                         # Create a record and append it to the dataset_dicts
                         record = data_tools.create_record(image_path=file_path,
                                                           bounding_boxes=coordinates,
-                                                          bbox_format=detectron2.structures.BoxMode.XYXY_ABS,
                                                           category_id=1,
                                                           index=index)
                         dataset_dicts.append(record)

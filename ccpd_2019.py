@@ -32,7 +32,8 @@ def decode_file_name(file_path: str) -> list or None:
         return None
 
 
-def generate_dataset_registration_info(data_directory: str = data_tools.CCPD_IMAGES_DIRECTORY, info_path: str = data_tools.CCPD_INFO_PATH) -> None:
+def generate_dataset_registration_info(data_directory: str = data_tools.CCPD_IMAGES_DIRECTORY,
+                                       info_path: str = data_tools.CCPD_INFORMATION_FILE) -> None:
     """
     This function generates the dataset registration info.
 

@@ -1,3 +1,7 @@
+import random
+
+import matplotlib.pyplot as plt
+
 import data_tools
 from tqdm.auto import tqdm
 import json
@@ -154,8 +158,18 @@ def select_candidates():
 
 
 def visualize(json_file: str or os.PathLike = os.path.join('data', 'val_info.json')):
+    import matplotlib.pyplot as plt
+    import cv2
     data = json.load(open(json_file))
+    for i in range(10):
+        data_point = random.choice(data)
+        image = plt.imread(data_point['file_name'])
+        for a in data_point['annotations']:
+            cv2.rectangle(image, tuple(a['bbox'][:2]), tuple(a['bbox'][2:]), (0, 0, 255), 2)
+        plt.imshow(image)
+        plt.show()
 
 
 if __name__ == '__main__':
     select_candidates()
+    visualize()

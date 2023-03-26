@@ -33,9 +33,9 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike = None
             image_path = os.path.join(data_directory, file_internal_path)
 
             # Get the number of images and bounding boxes
-            num_images = int(annotations[index + 1])
+            num_faces = int(annotations[index + 1])
             bboxes = []
-            for i in range(index + 2, index + 2 + num_images):
+            for i in range(index + 2, index + 2 + num_faces):
                 bbox = [int(coordinate) for coordinate in annotations[i].split()[:4]]
                 bboxes.append(bbox)
             bboxes = list(itertools.chain.from_iterable(bboxes))

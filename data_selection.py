@@ -1,7 +1,4 @@
 import random
-
-import matplotlib.pyplot as plt
-
 import data_tools
 from tqdm.auto import tqdm
 import json
@@ -95,8 +92,12 @@ def select_from_data(json_file: str,
     # creat an indexer to randomly select files from the dataset
     indexer = np.random.permutation(len(info))
 
+    # remove the directory if exists
+    if os.path.isdir(output_directory):
+        shutil.rmtree(output_directory)
+
     # Create the face data path if it doesn't exist.
-    os.makedirs(output_directory, exist_ok=True)
+    os.makedirs(output_directory)
 
     # initialise an empty list to hold the file names that hold the data splits temporarily
     files = {}

@@ -11,8 +11,7 @@ def train(network_base_name: str,
           train_steps: int = 5000,
           eval_steps: int = 5000,
           batch_size: int = 2,
-          max_patience: int = 50,
-          learning_rate_decay_factor: float = .9):
+          output_directory: str = 'output'):
     """
     Trains a model using the specified configurations.
 
@@ -25,9 +24,7 @@ def train(network_base_name: str,
     :param train_steps: The number of training steps to perform. Default is 5000.
     :param eval_steps: The number of evaluation steps to perform. Default is 5000.
     :param batch_size: The batch size to use for training. Default is 2.
-    :param max_patience: The maximum number of steps without improvement before reducing the learning rate. (default=50)
-    :param learning_rate_decay_factor: learning rate reduction factor to apply if max_patience is reached. (default=.9)
-
+    :param output_directory: str, the directory to which training results will be saved
     """
 
     # register the datasets
@@ -40,7 +37,8 @@ def train(network_base_name: str,
                              initial_learning_rate=initial_learning_rate,
                              train_steps=train_steps,
                              eval_freq=eval_steps,
-                             batch_size=batch_size)
+                             batch_size=batch_size,
+                             output_directory=output_directory)
 
     # Create trainer object with configurations
     trainer = Trainer(configurations)
@@ -55,6 +53,7 @@ if __name__ == '__main__':
     parser.add_argument('--weights_path', type=str, required=True)
     parser.add_argument('--yaml_url', type=str, required=True)
     parser.add_argument('--data_directory', type=str, default='data')
+    parser.add_argument('--output_directory', type=str, default='data')
     parser.add_argument('--thing_classes', type=list, default=['face', 'license_plate'])
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
     parser.add_argument('--train_steps', type=int, default=5000)

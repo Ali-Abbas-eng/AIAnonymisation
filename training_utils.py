@@ -140,7 +140,8 @@ def get_cfg(network_base_name: str,
             initial_learning_rate: float = 0.00025,
             train_steps: int = 5000,
             eval_freq: int = 5000,
-            batch_size: int = 2):
+            batch_size: int = 2,
+            output_directory: str = 'output'):
     """
     This function generates a configuration object for training a neural network.
 
@@ -151,6 +152,7 @@ def get_cfg(network_base_name: str,
     :param train_steps: The number of steps to train for. (default=5000)
     :param eval_freq: The frequency of evaluation w.r.t training steps. (default=5000)
     :param batch_size: The batch size to use during training. (default=2)
+    :param output_directory: str, the directory to which training results will be saved
 
     :return configurations:
         A configuration object with all specified parameters set.
@@ -166,7 +168,7 @@ def get_cfg(network_base_name: str,
     configurations.MODEL.WEIGHTS = weights_path
 
     # Set output directory
-    configurations.OUTPUT_DIR = os.path.join('output', network_base_name)
+    configurations.OUTPUT_DIR = os.path.join(output_directory, network_base_name)
 
     # Set training dataset
     configurations.DATASETS.TRAIN = ('train',)

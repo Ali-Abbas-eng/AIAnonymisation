@@ -59,8 +59,6 @@ if __name__ == '__main__':
     parser.add_argument('--train_steps', type=int, default=5000)
     parser.add_argument('--eval_steps', type=int, default=5000)
     parser.add_argument('--batch_size', type=int, default=2)
-    parser.add_argument('--max_patience', type=int, default=50)
-    parser.add_argument('--learning_rate_decay_factor', type=float, default=.9)
 
     args = vars(parser.parse_args())
 

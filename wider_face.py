@@ -1,9 +1,53 @@
 import itertools
-import os
-import detectron2.structures
 import data_tools
-import json
+import os
 from tqdm.auto import tqdm
+from zipfile import ZipFile
+import json
+import gdown
+from typing import Union
+
+
+def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('data', 'zipped', 'WIDER FACE'),
+                         unzipped_directory: Union[str, os.PathLike] = os.path.join('data', 'raw', 'WIDER FACE')):
+    """
+    Downloads and extracts CCPD2019 dataset from Google Drive.
+
+    Args:
+        download_directory (Union[str, os.PathLike]): Directory to save downloaded files. Defaults to 'data/zipped'.
+        unzipped_directory (Union[str, os.PathLike]): Directory to extract files. Defaults to 'data/raw/CCPD2019'.
+    """
+    # create the directories
+    os.makedirs(download_directory, exist_ok=True)
+    os.makedirs(unzipped_directory, exist_ok=True)
+
+    def unzip(file, unzipped_dir):
+        os.makedirs(unzipped_dir, exist_ok=True)
+        with ZipFile(file, 'r') as zip_file:
+            for member in tqdm(zip_file.namelist()):
+                zip_file.extract(member, unzipped_dir)
+
+    # Download WIDER FACE train dataset from Google Drive
+    zipped_train_file_path = os.path.join(download_directory, 'WIDER_train.zip')
+    gdown.download(url='https://drive.google.com/uc?id=1w6lLpq6Sh10okRA6bSBqcDEDb-2fK_nc',
+                   output=zipped_train_file_path)
+    # extract downloaded file
+    unzip(zipped_train_file_path, os.path.join(unzipped_directory, 'WIDER_train'))
+
+    # Download WIDER FACE val dataset from Google Drive
+    zipped_val_file_path = os.path.join(download_directory, 'WIDER_val.zip')
+    gdown.download(url='https://drive.google.com/uc?id=1wb5jtFTHd9yBZpYpUVO50hb5ofa2NOm3',
+                   output=zipped_val_file_path)
+    # extract downloaded file
+    unzip(zipped_val_file_path, os.path.join(unzipped_directory, 'WIDER_val'))
+
+    # Download WIDER FACE annotations file
+    zipped_annotations_files = os.path.join(download_directory, 'wider_face_split.zip')
+    gdown.download(url='https://drive.google.com/uc?id=1KcRtgcLprJBnhKpkEkC-FwBdXrdb_nsv',
+                   output=zipped_val_file_path)
+
+    # extract downloaded file
+    unzip(zipped_val_file_path, unzipped_directory)
 
 
 def generate_dataset_registration_info(data_directory: str or os.PathLike = None,

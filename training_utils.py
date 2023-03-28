@@ -10,6 +10,23 @@ from detectron2.model_zoo import get_config_file
 from detectron2.engine.hooks import HookBase
 
 
+class EarlyStoppingHook(HookBase):
+    def __init__(self, patience):
+        self.patience = patience
+        self.counter = 0
+        self.best_loss = float('inf')
+
+    def after_step(self):
+        loss = self.trainer.storage.history('loss')[-1]
+        if loss < self.best_loss:
+            self.best_loss = loss
+            self.counter = 0
+        else:
+            self.counter += 1
+            if self.counter >= self.patience:
+                raise Exception("Early stopping")
+
+
 class Trainer(DefaultTrainer):
     """
     A custom trainer class that inherits the DefaultTrainer class from Detectron2.

@@ -1,4 +1,4 @@
-from training_utils import register_datasets, get_cfg, Trainer
+from training_utils import register_datasets, get_cfg, Trainer, EarlyStoppingHook
 import argparse
 
 
@@ -43,6 +43,9 @@ def train(network_base_name: str,
     # Create trainer object with configurations
     trainer = Trainer(configurations)
 
+    # register early stopping hook
+    trainer.register_hooks([EarlyStoppingHook(patience=10)])
+
     # Train model
     trainer.train()
 
@@ -53,7 +56,7 @@ if __name__ == '__main__':
     parser.add_argument('--weights_path', type=str, required=True)
     parser.add_argument('--yaml_url', type=str, required=True)
     parser.add_argument('--data_directory', type=str, default='data')
-    parser.add_argument('--output_directory', type=str, default='data')
+    parser.add_argument('--output_directory', type=str, default='output')
     parser.add_argument('--thing_classes', type=list, default=['FACE', 'LP'])
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
     parser.add_argument('--train_steps', type=int, default=160_000)

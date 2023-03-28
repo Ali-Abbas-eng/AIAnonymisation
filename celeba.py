@@ -25,10 +25,9 @@ def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.j
                           proxy=None,
                           speed=None,
                           use_cookies=True)
-
-    filenames = [os.path.join(download_directory, file) for file in os.listdir(download_directory)]
     os.makedirs(unzipped_directory, exist_ok=True)
-    with multivolumefile.open('/content/drive/MyDrive/CelebA/img_celeba.7z', mode='rb') as target_archive:
+    zipped_file_path = os.path.join(download_directory, 'img_celeba.7z')
+    with multivolumefile.open(zipped_file_path, mode='rb') as target_archive:
         with py7zr.SevenZipFile(target_archive, 'r') as archive:
             archive.extractall(unzipped_directory)
 

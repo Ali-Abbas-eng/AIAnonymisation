@@ -83,4 +83,5 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike = data
 
 
 if __name__ == '__main__':
+    download_and_extract()
     generate_dataset_registration_info()

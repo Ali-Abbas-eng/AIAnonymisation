@@ -48,7 +48,7 @@ def generate_data_split(info: List[Dict],
     data = []
     for i, index in tqdm(enumerate(indexes), total=len(indexes), desc=f'Generating Data ({file_base_name}_{split})'):
         # Get the file name and path.
-        file_name = info[index]['file_name'].split('\\')[-1]
+        file_name = info[index]['file_name'].split(os.path.sep)[-1]
         file_name = f'{file_base_name}_{file_name}'
         file_path = os.path.join(data_directory, file_name)
 

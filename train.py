@@ -54,11 +54,11 @@ if __name__ == '__main__':
     parser.add_argument('--yaml_url', type=str, required=True)
     parser.add_argument('--data_directory', type=str, default='data')
     parser.add_argument('--output_directory', type=str, default='data')
-    parser.add_argument('--thing_classes', type=list, default=['face', 'license_plate'])
+    parser.add_argument('--thing_classes', type=list, default=['FACE', 'LP'])
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
-    parser.add_argument('--train_steps', type=int, default=5000)
-    parser.add_argument('--eval_steps', type=int, default=5000)
-    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--train_steps', type=int, default=160_000)
+    parser.add_argument('--eval_steps', type=int, default=50_000)
+    parser.add_argument('--batch_size', type=int, default=4)
 
     args = vars(parser.parse_args())
 

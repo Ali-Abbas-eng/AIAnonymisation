@@ -1,17 +1,44 @@
 import os
-
-import detectron2.structures
-
 import data_tools
 import json
 from tqdm.auto import tqdm
+from typing import Union
+import gdown
+import py7zr
+
+
+def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('data', 'zipped'),
+                         unzipped_directory: Union[str, os.PathLike] = os.path.join('data', 'raw')):
+    """
+    Downloads and extracts CelebA dataset from Google Drive.
+
+    Args:
+        download_directory (Union[str, os.PathLike]): Directory to save downloaded files. Defaults to 'data/zipped'.
+        unzipped_directory (Union[str, os.PathLike]): Directory to extract files. Defaults to 'data/raw'.
+    """
+    # Download CelebA dataset from Google Drive
+    gdown.download_folder(url='https://drive.google.com/drive/folders/1eyJ52hX5KpniS9MB-MFXBRtJUDpeldqx?usp=share_link',
+                          output=download_directory)
+
+    filenames = [f'{download_directory}/{file}' for file in os.listdir(download_directory)]
+
+    with open('celeba.7z', 'ab') as outfile:  # append in binary mode
+        for file_name in filenames:
+            try:
+                with open(file_name, 'rb') as infile:  # open in binary mode also
+                    outfile.write(infile.read())
+            except IsADirectoryError:
+                pass
+    with py7zr.SevenZipFile("celeba.7z", "r") as archive:
+        archive.extractall(path=unzipped_directory)
+    os.unlink("celeba.7z")
 
 
 def generate_dataset_registration_info(data_directory: str or os.PathLike = data_tools.CELEB_A_IMAGES_DIRECTORY,
                                        annotations_file: str or os.PathLike = data_tools.CELEB_A_ANNOTATIONS_FILE,
                                        info_path: str or os.PathLike = data_tools.CELEB_A_INFORMATION_FILE):
     """
-    Generates dataset records (list of dictionaries) and saves them to a json file later to be imported by detectron2 and registered.
+    Generates dataset records (list of dictionaries) and saves them to a json file.
 
     Args:
         data_directory (str or os.PathLike): The directory where the images are stored.

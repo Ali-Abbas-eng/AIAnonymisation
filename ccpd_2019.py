@@ -108,5 +108,6 @@ def generate_dataset_registration_info(data_directory: str = data_tools.CCPD_IMA
 
 
 if __name__ == '__main__':
+    download_and_extract()
     # Call the generate_dataset_registration_info function
     generate_dataset_registration_info()

@@ -140,4 +140,3 @@ def download_files(urls: dict, directory: str = 'models'):
         # Print an error message if the file was not downloaded successfully
         if file_size != 0 and progress_bar.n != file_size:
             print(f"ERROR: Failed to download {filename}")
-

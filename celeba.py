@@ -9,7 +9,7 @@ import multivolumefile
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('data', 'zipped'),
-                         unzipped_directory: Union[str, os.PathLike] = os.path.join('data', 'raw')):
+                         unzipped_directory: Union[str, os.PathLike] = os.path.join('data', 'raw', 'CelebA')):
     """
     Downloads and extracts CelebA dataset from Google Drive.
 
@@ -27,6 +27,11 @@ def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.j
                           use_cookies=True)
     os.makedirs(unzipped_directory, exist_ok=True)
     zipped_file_path = os.path.join(download_directory, 'img_celeba.7z')
+
+    # download annotations
+    gdown.download('https://drive.google.com/uc?id=19X0GE3kP6tNatS9kZ2-Ks2_OeeCtqeFI',
+                   output=os.path.join(download_directory, 'list_bbox_celeba.txt'))
+
     with multivolumefile.open(zipped_file_path, mode='rb') as target_archive:
         with py7zr.SevenZipFile(target_archive, 'r') as archive:
             archive.extractall(unzipped_directory)

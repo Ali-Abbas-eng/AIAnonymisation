@@ -28,14 +28,15 @@ def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.j
     os.makedirs(unzipped_directory, exist_ok=True)
     zipped_file_path = os.path.join(download_directory, 'img_celeba.7z')
 
-    annotations_output_path = os.path.join(download_directory, 'anno', 'list_bbox_celeba.txt')
-    # download annotations
-    gdown.download('https://drive.google.com/uc?id=19X0GE3kP6tNatS9kZ2-Ks2_OeeCtqeFI',
-                   output=annotations_output_path)
-
     with multivolumefile.open(zipped_file_path, mode='rb') as target_archive:
         with py7zr.SevenZipFile(target_archive, 'r') as archive:
             archive.extractall(unzipped_directory)
+
+    annotations_output_path = os.path.join(unzipped_directory, 'anno')
+    os.makedirs(annotations_output_path)
+    # download annotations
+    gdown.download('https://drive.google.com/uc?id=19X0GE3kP6tNatS9kZ2-Ks2_OeeCtqeFI',
+                   output=os.path.join(annotations_output_path, 'list_bbox_celeba.txt'))
 
 
 def generate_dataset_registration_info(data_directory: str or os.PathLike = data_tools.CELEB_A_IMAGES_DIRECTORY,

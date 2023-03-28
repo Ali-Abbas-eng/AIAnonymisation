@@ -1,47 +1,5 @@
 import os
-import requests
-from tqdm.auto import tqdm
-import argparse
-
-
-def download_files(urls: dict, directory: str = 'models'):
-    """
-    Downloads files from the given URLs and saves them to the given directory.
-
-    Args:
-        urls (dict): A dictionary of URLs to download.
-        directory (str): The directory where the files should be saved.
-    """
-    # Create the directory if it doesn't exist
-    os.makedirs(directory, exist_ok=True)
-
-    # Loop through each URL and download the file
-    for key, url in urls.items():
-        # Get the filename from the URL
-        filename = os.path.join(directory, url.split('/')[-1])
-
-        # Download the file
-        response = requests.get(url, stream=True)
-
-        # Get the size of the file and set the block size for the progress bar
-        file_size = int(response.headers.get('Content-Length', 0))
-        block_size = 1024
-
-        # Create a progress bar for the download
-        progress_bar = tqdm(total=file_size, unit='iB', unit_scale=True, desc=f'Downloading {key.capitalize()}')
-
-        # Loop through the response data and write it to a file while updating the progress bar
-        with open(filename, 'wb') as file:
-            for data in response.iter_content(block_size):
-                progress_bar.update(len(data))
-                file.write(data)
-
-        # Close the progress bar
-        progress_bar.close()
-
-        # Print an error message if the file was not downloaded successfully
-        if file_size != 0 and progress_bar.n != file_size:
-            print(f"ERROR: Failed to download {filename}")
+from data_tools import download_files
 
 
 def get_info():

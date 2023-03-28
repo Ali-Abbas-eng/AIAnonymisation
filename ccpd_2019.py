@@ -1,9 +1,33 @@
 import os
-
-import detectron2.structures
 from tqdm.auto import tqdm
 import data_tools
+import lzma
+import tarfile
 import json
+import gdown
+from typing import Union
+
+
+def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('data', 'zipped'),
+                         unzipped_directory: Union[str, os.PathLike] = os.path.join('data', 'raw', 'CCPD2019')):
+    """
+    Downloads and extracts CCPD2019 dataset from Google Drive.
+
+    Args:
+        download_directory (Union[str, os.PathLike]): Directory to save downloaded files. Defaults to 'data/zipped'.
+        unzipped_directory (Union[str, os.PathLike]): Directory to extract files. Defaults to 'data/raw/CCPD2019'.
+    """
+    # Download CCPD2019 dataset from Google Drive
+    zipped_file_path = os.path.join(download_directory, 'CCPD2019.tar.xz')
+    gdown.download(url='https://drive.google.com/uc?id=1rdEsCUcIUaYOVRkx5IMTRNA7PcGMmSgc',
+                   output=zipped_file_path)
+
+    # Extract downloaded files
+    with lzma.open(zipped_file_path) as decompressed_xz:
+        with tarfile.open(fileobj=decompressed_xz) as decompressed_tar:
+            members = decompressed_tar.getmembers()
+            for member in tqdm(members, total=len(members)):
+                decompressed_tar.extract(member=member, path=unzipped_directory)
 
 
 def decode_file_name(file_path: str) -> list or None:

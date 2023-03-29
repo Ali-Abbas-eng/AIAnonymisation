@@ -4,6 +4,8 @@ import itertools
 from detectron2.structures import BoxMode
 import requests
 from tqdm.auto import tqdm
+import json
+from detectron2.data import DatasetCatalog, MetadataCatalog
 
 
 CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
@@ -140,3 +142,67 @@ def download_files(urls: dict, directory: str = 'models'):
         # Print an error message if the file was not downloaded successfully
         if file_size != 0 and progress_bar.n != file_size:
             print(f"ERROR: Failed to download {filename}")
+
+
+def create_dataset_dicts(split: str, data_directory: str = 'data'):
+    """
+    a functionality to merge json files that contain portions of the total dataset (each downloaded individually)
+    Args:
+        split: str, the set of the data which separate files are to be merged, could be ['train', 'test', 'val']
+        data_directory: str, the directory to flip around looking for the data to use
+
+    Returns: list[dict]
+        a list of dictionaries containing information about the dataset as a whole
+
+    """
+    total_data = os.path.join(data_directory, f'{split}_info.json')
+    if os.path.isfile(total_data):
+        data = json.load(open(total_data, 'r'))
+        return data
+
+    else:
+        # initialise an empty list to hold the data objects
+        data = []
+
+        # recursively iterate through the data directory and look for the json files
+        for root, dirs, files in os.walk(data_directory):
+            # iterate through all the files contained the current directory
+            for file in files:
+                # is the current file is a json file
+                if file.endswith('.json'):
+                    # if the file name contains the name of the split of interest
+                    if split in file:
+                        # load the content of the file (which is a list) and extend the data list we initialised earlier
+                        data.extend(json.load(open(os.path.join(root, file))))
+        json.dump(data, open(total_data, 'w'))
+        # return the list of dictionaries that represents the datasets
+        return data
+
+def register_datasets(data_directory: str,
+                      thing_classes: list):
+    """
+    Registers datasets for training, testing, and validation in Detectron2.
+
+    This function registers datasets for training, testing, and validation in Detectron2 using the provided data
+    directory and thing classes. The data directory should contain the data for all three splits (train, test, valid)
+    in separate subdirectories. The thing classes should be a list of class names corresponding to the classes present
+    in the dataset.
+
+    :param data_directory: The path to the directory containing the data for all three splits (train, test, valid).
+    :type data_directory: str
+    :param thing_classes: A list of class names corresponding to the classes present in the dataset.
+    :type thing_classes: list
+    """
+
+    # Define a function that returns a dataset dictionary for the current split using create_dataset_dicts()
+    def data_getter(data_split: str):
+        return create_dataset_dicts(split=data_split, data_directory=data_directory)
+
+    # Loop over all three splits (train, test, valid)
+    for split in ['train', 'test', 'valid']:
+        # Register the current split with Detectron2 using DatasetCatalog.register()
+        DatasetCatalog.register(split, lambda data_split=split: data_getter(data_split=data_split))
+
+        # Set thing_classes for the current split using MetadataCatalog.get().set()
+        MetadataCatalog.get(split).set(thing_classes=thing_classes)
+

@@ -91,6 +91,8 @@ def get_cfg(network_base_name: str,
             initial_learning_rate: float = 0.00025,
             train_steps: int = 5000,
             eval_freq: int = 5000,
+            checkpoints_freq: int = 5000,
+            log_freq: int = 5000,
             batch_size: int = 2,
             output_directory: str = 'output'):
     """
@@ -102,6 +104,8 @@ def get_cfg(network_base_name: str,
     :param initial_learning_rate: The initial learning rate for training. (default=0.00025)
     :param train_steps: The number of steps to train for. (default=5000)
     :param eval_freq: The frequency of evaluation w.r.t training steps. (default=5000)
+    :param checkpoints_freq: int, the frequency at which to make a model checkpoint. Default is 5000
+    :param log_freq: int, the frequency at which to log training details. Default is 5000
     :param batch_size: The batch size to use during training. (default=2)
     :param output_directory: str, the directory to which training results will be saved
 
@@ -129,6 +133,12 @@ def get_cfg(network_base_name: str,
 
     # Set batch size
     configurations.SOLVER.IMS_PER_BATCH = batch_size
+
+    # Set checkpointing frequency
+    configurations.SOLVER.CHECKPOINT_PERIOD = checkpoints_freq
+
+    # Set logging frequency
+    configurations.SOLVER.LOGGER_PERIOD = log_freq
 
     # Set maximum number of iterations
     configurations.SOLVER.MAX_ITER = train_steps

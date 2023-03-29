@@ -178,6 +178,7 @@ def create_dataset_dicts(split: str, data_directory: str = 'data'):
         # return the list of dictionaries that represents the datasets
         return data
 
+
 def register_datasets(data_directory: str,
                       thing_classes: list):
     """

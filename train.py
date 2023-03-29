@@ -1,4 +1,5 @@
-from training_utils import register_datasets, get_cfg, Trainer, EarlyStoppingHook
+from data_tools import register_datasets
+from training_utils import get_cfg, Trainer, EarlyStoppingHook
 import argparse
 
 

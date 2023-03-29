@@ -154,7 +154,7 @@ def select_candidates():
      for file in os.listdir(data_tools.FINAL_DATA_PATH) if 'temp' in file]
 
 
-def visualize(json_file: str or os.PathLike = os.path.join('data', 'val_info.json')):
+def visualize(json_file: str or os.PathLike = os.path.join('../data', 'val_info.json')):
     import matplotlib.pyplot as plt
     import cv2
     data = json.load(open(json_file))

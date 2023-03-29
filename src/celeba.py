@@ -8,8 +8,8 @@ import py7zr
 import multivolumefile
 
 
-def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('data', 'zipped'),
-                         unzipped_directory: Union[str, os.PathLike] = os.path.join('data', 'raw', 'CelebA')):
+def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('../data', 'zipped'),
+                         unzipped_directory: Union[str, os.PathLike] = os.path.join('../data', 'raw', 'CelebA')):
     """
     Downloads and extracts CelebA dataset from Google Drive.
 

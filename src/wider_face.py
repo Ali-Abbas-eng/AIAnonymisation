@@ -8,8 +8,8 @@ import gdown
 from typing import Union
 
 
-def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('data', 'zipped', 'WIDER FACE'),
-                         unzipped_directory: Union[str, os.PathLike] = os.path.join('data', 'raw', 'WIDER FACE')):
+def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('../data', 'zipped', 'WIDER FACE'),
+                         unzipped_directory: Union[str, os.PathLike] = os.path.join('../data', 'raw', 'WIDER FACE')):
     """
     Downloads and extracts CCPD2019 dataset from Google Drive.
 

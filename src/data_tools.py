@@ -8,18 +8,18 @@ import json
 from detectron2.data import DatasetCatalog, MetadataCatalog
 
 
-CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
-CELEB_A_ANNOTATIONS_FILE = os.path.join('data', 'raw', 'CelebA', 'anno', 'list_bbox_celeba.txt')
-CELEB_A_INFORMATION_FILE = os.path.join('data', 'raw', 'CelebA', 'celeba_info.json')
+CELEB_A_IMAGES_DIRECTORY = os.path.join('../data', 'raw', 'CelebA', 'img_celeba')
+CELEB_A_ANNOTATIONS_FILE = os.path.join('../data', 'raw', 'CelebA', 'anno', 'list_bbox_celeba.txt')
+CELEB_A_INFORMATION_FILE = os.path.join('../data', 'raw', 'CelebA', 'celeba_info.json')
 
-WIDER_FACE_IMAGES_DIRECTORY_TRAIN = os.path.join('data', 'raw', 'WIDER FACE', 'WIDER_train', 'images')
-WIDER_FACE_ANNOTATIONS_FILE_TRAIN = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face_split',
+WIDER_FACE_IMAGES_DIRECTORY_TRAIN = os.path.join('../data', 'raw', 'WIDER FACE', 'WIDER_train', 'images')
+WIDER_FACE_ANNOTATIONS_FILE_TRAIN = os.path.join('../data', 'raw', 'WIDER FACE', 'wider_face_split',
                                                  'wider_face_train_bbx_gt.txt')
-WIDER_FACE_IMAGES_DIRECTORY_VALID = os.path.join('data', 'raw', 'WIDER FACE', 'WIDER_val', 'images')
-WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face_split',
+WIDER_FACE_IMAGES_DIRECTORY_VALID = os.path.join('../data', 'raw', 'WIDER FACE', 'WIDER_val', 'images')
+WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('../data', 'raw', 'WIDER FACE', 'wider_face_split',
                                                  'wider_face_val_bbx_gt.txt')
 
-WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face.json')
+WIDER_FACE_INFORMATION_FILE = os.path.join('../data', 'raw', 'WIDER FACE', 'wider_face.json')
 
 CELEB_A_NUM_CANDIDATES = {
     'train': 30_000,
@@ -39,13 +39,13 @@ CCPD_NUM_CANDIDATES = {
     'val': 12_000
 }
 
-FINAL_DATA_PATH = 'data'
+FINAL_DATA_PATH = '../data'
 IMAGES_DATA_DIRECTORY = os.path.join(FINAL_DATA_PATH, 'images')
 
 DATASET_INFO_FILE = os.path.join(FINAL_DATA_PATH, 'info.json')
 
-CCPD_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CCPD2019')
-CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
+CCPD_IMAGES_DIRECTORY = os.path.join('../data', 'raw', 'CCPD2019')
+CCPD_INFORMATION_FILE = os.path.join('../data', 'raw', 'CCPD2019', 'CCPD2019.json')
 
 
 def create_record(image_path: str,

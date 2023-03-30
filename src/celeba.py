@@ -1,8 +1,7 @@
 import os
-import data_tools
 import json
 from tqdm.auto import tqdm
-from typing import Union
+from typing import Union, Callable
 import gdown
 import py7zr
 import multivolumefile
@@ -39,9 +38,10 @@ def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.j
                    output=os.path.join(annotations_output_path, 'list_bbox_celeba.txt'))
 
 
-def generate_dataset_registration_info(data_directory: str or os.PathLike = data_tools.CELEB_A_IMAGES_DIRECTORY,
-                                       annotations_file: str or os.PathLike = data_tools.CELEB_A_ANNOTATIONS_FILE,
-                                       info_path: str or os.PathLike = data_tools.CELEB_A_INFORMATION_FILE):
+def generate_dataset_registration_info(data_directory: str or os.PathLike,
+                                       annotations_file: str or os.PathLike,
+                                       info_path: str or os.PathLike,
+                                       create_record: Callable):
     """
     Generates dataset records (list of dictionaries) and saves them to a json file.
 
@@ -49,6 +49,7 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike = data
         data_directory (str or os.PathLike): The directory where the images are stored.
         annotations_file (str or os.PathLike): The path to the annotations file.
         info_path (str or os.PathLike): The path to the information file.
+        create_record (Callable): a function to creat information object (dictionary) for one data file.
 
     Returns:
         None
@@ -77,18 +78,13 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike = data
         y_max = example[2] + example[4]
 
         # Create a record for the example
-        example_record = data_tools.create_record(image_path=image_path,
-                                                  index=index,
-                                                  bounding_boxes=[x_min, y_min, x_max, y_max],
-                                                  category_id=0)
+        example_record = create_record(image_path=image_path,
+                                       index=index,
+                                       bounding_boxes=[x_min, y_min, x_max, y_max],
+                                       category_id=0)
 
         # Add the example record to the dataset records list
         dataset_records.append(example_record)
 
     # Save the dataset records to a json file
     json.dump(dataset_records, open(info_path, 'w'))
-
-
-if __name__ == '__main__':
-    download_and_extract()
-    generate_dataset_registration_info()

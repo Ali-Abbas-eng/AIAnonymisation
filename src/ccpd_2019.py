@@ -1,15 +1,14 @@
 import os
 from tqdm.auto import tqdm
-import data_tools
 import lzma
 import tarfile
 import json
 import gdown
-from typing import Union
+from typing import Union, Callable
 
 
-def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('../data', 'zipped'),
-                         unzipped_directory: Union[str, os.PathLike] = os.path.join('../data', 'raw')):
+def download_and_extract(download_directory: Union[str, os.PathLike],
+                         unzipped_directory: Union[str, os.PathLike]):
     """
     Downloads and extracts CCPD2019 dataset from Google Drive.
 
@@ -60,15 +59,16 @@ def decode_file_name(file_path: str) -> list or None:
         return None
 
 
-def generate_dataset_registration_info(data_directory: str = data_tools.CCPD_IMAGES_DIRECTORY,
-                                       info_path: str = data_tools.CCPD_INFORMATION_FILE) -> None:
+def generate_dataset_registration_info(data_directory: str or os.PathLike,
+                                       info_path: str or os.PathLike,
+                                       create_record: Callable) -> None:
     """
     This function generates the dataset registration info.
 
     Args:
-    data_directory (str): The directory containing the data.
-    info_path (str): The path of the info file.
-
+        data_directory (str): The directory containing the data.
+        info_path (str): The path of the info file.
+        create_record (Callable): a function to creat information object (dictionary) for one data file.
     Returns:
     None
     """
@@ -93,10 +93,10 @@ def generate_dataset_registration_info(data_directory: str = data_tools.CCPD_IMA
                         file_path = os.path.join(root, file)
 
                         # Create a record and append it to the dataset_dicts
-                        record = data_tools.create_record(image_path=file_path,
-                                                          bounding_boxes=coordinates,
-                                                          category_id=1,
-                                                          index=index)
+                        record = create_record(image_path=file_path,
+                                               bounding_boxes=coordinates,
+                                               category_id=1,
+                                               index=index)
                         dataset_dicts.append(record)
                         index += 1
 
@@ -105,9 +105,3 @@ def generate_dataset_registration_info(data_directory: str = data_tools.CCPD_IMA
 
     # Dump the dataset_dicts to the info file
     json.dump(dataset_dicts, open(info_path, 'w'))
-
-
-if __name__ == '__main__':
-    download_and_extract()
-    # Call the generate_dataset_registration_info function
-    generate_dataset_registration_info()

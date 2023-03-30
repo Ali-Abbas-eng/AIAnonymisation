@@ -5,11 +5,11 @@ from tqdm.auto import tqdm
 from zipfile import ZipFile
 import json
 import gdown
-from typing import Union
+from typing import Union, Callable
 
 
-def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('../data', 'zipped', 'WIDER FACE'),
-                         unzipped_directory: Union[str, os.PathLike] = os.path.join('../data', 'raw', 'WIDER FACE')):
+def download_and_extract(download_directory: Union[str, os.PathLike],
+                         unzipped_directory: Union[str, os.PathLike]):
     """
     Downloads and extracts CCPD2019 dataset from Google Drive.
 
@@ -50,14 +50,16 @@ def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.j
     unzip(zipped_val_file_path, unzipped_directory)
 
 
-def generate_dataset_registration_info(data_directory: str or os.PathLike = None,
-                                       annotations_file: str or os.PathLike = None):
+def generate_dataset_registration_info(data_directory: str or os.PathLike,
+                                       annotations_file: str or os.PathLike,
+                                       create_record: Callable):
     """
     This function generates dataset registration information from the annotations file and the data directory.
 
     Args:
         data_directory (str or os.PathLike): The directory containing the data.
         annotations_file (str or os.PathLike): The annotations file.
+        create_record (Callable): a function to creat information object (dictionary) for one data file.
 
     Returns:
         dataset_dicts (list): A list of dictionaries containing the dataset registration information.
@@ -88,34 +90,42 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike = None
             bboxes = list(itertools.chain.from_iterable(bboxes))
 
             # Create the record and append it to the dataset dictionary
-            record = data_tools.create_record(image_path=image_path,
-                                              bounding_boxes=bboxes,
-                                              index=file_id,
-                                              category_id=0)
+            record = create_record(image_path=image_path,
+                                   bounding_boxes=bboxes,
+                                   index=file_id,
+                                   category_id=0)
             dataset_dicts.append(record)
 
     return dataset_dicts
 
 
-def write_data(info_path: str = data_tools.WIDER_FACE_INFORMATION_FILE):
+def write_data(data_directory_train: Union[str, os.PathLike],
+               data_directory_valid: Union[str, os.PathLike],
+               annotation_file_train: Union[str, os.PathLike],
+               annotation_file_valid: Union[str, os.PathLike],
+               create_record: Callable,
+               info_path: str = data_tools.WIDER_FACE_INFORMATION_FILE):
     """
     This function writes the data to the information file.
 
     Args:
+        data_directory_train (str or os.PathLike): The directory containing the training data.
+        data_directory_valid (str or os.PathLike): The directory containing the validation data.
+        annotation_file_train (str or os.PathLike): The training data annotations file.
+        annotation_file_valid (str or os.PathLike): The validation data annotations file.
+        create_record (Callable): a function to creat information object (dictionary) for one data file.
         info_path (str): The path of the information file.
     """
     # Generate the dataset registration information for the training and validation data
-    data1 = generate_dataset_registration_info(data_directory=data_tools.WIDER_FACE_IMAGES_DIRECTORY_TRAIN,
-                                               annotations_file=data_tools.WIDER_FACE_ANNOTATIONS_FILE_TRAIN)
-    data2 = generate_dataset_registration_info(data_directory=data_tools.WIDER_FACE_IMAGES_DIRECTORY_VALID,
-                                               annotations_file=data_tools.WIDER_FACE_ANNOTATIONS_FILE_VALID)
+    data1 = generate_dataset_registration_info(data_directory=data_directory_train,
+                                               annotations_file=annotation_file_train,
+                                               create_record=create_record)
+    data2 = generate_dataset_registration_info(data_directory=data_directory_valid,
+                                               annotations_file=annotation_file_valid,
+                                               create_record=create_record)
 
     # Combine the training and validation data
     data1.extend(data2)
 
     # Write the data to the information file
     json.dump(data1, open(info_path, 'w'))
-
-
-if __name__ == "__main__":
-    write_data()

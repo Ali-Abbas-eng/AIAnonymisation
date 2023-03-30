@@ -1,10 +1,12 @@
 import itertools
 import os
+import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 from zipfile import ZipFile
 import json
 import gdown
 from typing import Union, Callable
+from data_tools import adaptive_resize, IMAGE_SIZE
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike],
@@ -87,6 +89,9 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
                 bbox[3] += bbox[1]
                 bboxes.append(bbox)
             bboxes = list(itertools.chain.from_iterable(bboxes))
+            image = plt.imread(image_path)
+            image, bboxes = adaptive_resize(image, bboxes, new_size=IMAGE_SIZE)
+            plt.imsave(image, image_path)
 
             # Create the record and append it to the dataset dictionary
             record = create_record(image_path=image_path,

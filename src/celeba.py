@@ -5,6 +5,8 @@ from typing import Union, Callable
 import gdown
 import py7zr
 import multivolumefile
+import matplotlib.pyplot as plt
+from data_tools import adaptive_resize, IMAGE_SIZE
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('../data', 'zipped'),
@@ -76,11 +78,14 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
         y_min = example[2]
         x_max = example[1] + example[3]
         y_max = example[2] + example[4]
-
+        bboxes = [x_min, y_min, x_max, y_max]
+        image = plt.imread(image_path)
+        image, bboxes = adaptive_resize(image, bboxes, new_size=IMAGE_SIZE)
+        plt.imsave(image, image_path)
         # Create a record for the example
         example_record = create_record(image_path=image_path,
                                        index=index,
-                                       bounding_boxes=[x_min, y_min, x_max, y_max],
+                                       bounding_boxes=bboxes,
                                        category_id=0)
 
         # Add the example record to the dataset records list

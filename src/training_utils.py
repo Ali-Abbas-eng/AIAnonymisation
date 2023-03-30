@@ -5,25 +5,29 @@ from detectron2.engine.defaults import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
 from detectron2.config import get_cfg as base_configurations
 from detectron2.model_zoo import get_config_file
-from detectron2.engine.hooks import HookBase
+from detectron2.engine import hooks
 
 
-class EarlyStoppingHook(HookBase):
-    def __init__(self, patience):
+class EarlyStoppingHook(hooks.HookBase):
+    def __init__(self, patience=10):
         self.patience = patience
         self.counter = 0
-        self.best_loss = float('inf')
+        self.best_score = None
 
     def after_step(self):
-        loss = self.trainer.storage.history('loss')[-1]
-        if loss < self.best_loss:
-            self.best_loss = loss
-            self.counter = 0
+        if self.trainer.iter == 0:
+            return
+        if self.best_score is None:
+            self.best_score = self.trainer.storage.history("total_loss").latest()
         else:
-            self.counter += 1
-            if self.counter >= self.patience:
-                raise Exception("Early stopping")
-
+            current_score = self.trainer.storage.history("total_loss").latest()
+            if current_score > self.best_score:
+                self.counter += 1
+                if self.counter >= self.patience:
+                    raise Exception('early stopping')
+            else:
+                self.best_score = current_score
+                self.counter = 0
 
 class Trainer(DefaultTrainer):
     """
@@ -133,6 +137,12 @@ def get_cfg(network_base_name: str,
 
     # Set batch size
     configurations.SOLVER.IMS_PER_BATCH = batch_size
+
+    # Set image size
+    configurations.INPUT.MIN_SIZE_TRAIN = 256
+    configurations.INPUT.MAX_SIZE_TRAIN = 256
+    configurations.INPUT.MIN_SIZE_TEST = 256
+    configurations.INPUT.MAX_SIZE_TEST = 256
 
     # Set checkpointing frequency
     configurations.SOLVER.CHECKPOINT_PERIOD = checkpoints_freq

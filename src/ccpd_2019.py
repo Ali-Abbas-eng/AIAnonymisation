@@ -95,7 +95,7 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
                         image_path = os.path.join(root, file)
                         image = plt.imread(image_path)
                         image, bboxes = adaptive_resize(image, coordinates, new_size=IMAGE_SIZE)
-                        plt.imsave(image, image_path)
+                        plt.imsave(image_path, image)
                         # Create a record and append it to the dataset_dicts
                         record = create_record(image_path=image_path,
                                                bounding_boxes=coordinates,

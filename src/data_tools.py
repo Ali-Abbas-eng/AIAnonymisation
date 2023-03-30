@@ -13,44 +13,44 @@ from typing import List, Dict
 import cv2
 
 
-CELEB_A_IMAGES_DIRECTORY = os.path.join('../data', 'raw', 'CelebA', 'img_celeba')
-CELEB_A_ANNOTATIONS_FILE = os.path.join('../data', 'raw', 'CelebA', 'anno', 'list_bbox_celeba.txt')
-CELEB_A_INFORMATION_FILE = os.path.join('../data', 'raw', 'CelebA', 'celeba_info.json')
+CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
+CELEB_A_ANNOTATIONS_FILE = os.path.join('data', 'raw', 'CelebA', 'anno', 'list_bbox_celeba.txt')
+CELEB_A_INFORMATION_FILE = os.path.join('data', 'raw', 'CelebA', 'celeba_info.json')
 
-WIDER_FACE_IMAGES_DIRECTORY_TRAIN = os.path.join('../data', 'raw', 'WIDER FACE', 'WIDER_train', 'images')
-WIDER_FACE_ANNOTATIONS_FILE_TRAIN = os.path.join('../data', 'raw', 'WIDER FACE', 'wider_face_split',
+WIDER_FACE_IMAGES_DIRECTORY_TRAIN = os.path.join('data', 'raw', 'WIDER FACE', 'WIDER_train', 'images')
+WIDER_FACE_ANNOTATIONS_FILE_TRAIN = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face_split',
                                                  'wider_face_train_bbx_gt.txt')
-WIDER_FACE_IMAGES_DIRECTORY_VALID = os.path.join('../data', 'raw', 'WIDER FACE', 'WIDER_val', 'images')
-WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('../data', 'raw', 'WIDER FACE', 'wider_face_split',
+WIDER_FACE_IMAGES_DIRECTORY_VALID = os.path.join('data', 'raw', 'WIDER FACE', 'WIDER_val', 'images')
+WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face_split',
                                                  'wider_face_val_bbx_gt.txt')
 
-WIDER_FACE_INFORMATION_FILE = os.path.join('../data', 'raw', 'WIDER FACE', 'wider_face.json')
+WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face.json')
 
 CELEB_A_NUM_CANDIDATES = {
-    'train': 30_000,
-    'test': 10_000,
-    'val': 10_000
+    'train': 300,
+    'test': 10_0,
+    'val': 10_0
 }
 
 WIDER_FACE_NUM_CANDIDATES = {
-    'train': 10_000,
-    'test': 2000,
-    'val': 2000
+    'train': 10_0,
+    'test': 20,
+    'val': 20
 }
 
 CCPD_NUM_CANDIDATES = {
-    'train': 40_000,
-    'test': 12_000,
-    'val': 12_000
+    'train': 400,
+    'test': 12_0,
+    'val': 12_0
 }
 
-FINAL_DATA_PATH = '../data'
+FINAL_DATA_PATH = 'data'
 IMAGES_DATA_DIRECTORY = os.path.join(FINAL_DATA_PATH, 'images')
 
 DATASET_INFO_FILE = os.path.join(FINAL_DATA_PATH, 'info.json')
 
-CCPD_IMAGES_DIRECTORY = os.path.join('../data', 'raw', 'CCPD2019')
-CCPD_INFORMATION_FILE = os.path.join('../data', 'raw', 'CCPD2019', 'CCPD2019.json')
+CCPD_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CCPD2019')
+CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
 
 
 IMAGE_SIZE = (360, 580)
@@ -384,7 +384,7 @@ def select_candidates():
      for file in os.listdir(FINAL_DATA_PATH) if 'temp' in file]
 
 
-def visualize(json_file: str or os.PathLike = os.path.join('../data', 'val_info.json')):
+def visualize(json_file: str or os.PathLike = os.path.join('data', 'val_info.json')):
     import matplotlib.pyplot as plt
     import cv2
     data = json.load(open(json_file))

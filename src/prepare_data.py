@@ -17,15 +17,15 @@ def download_and_extract(compressed_files_directory: str or os.PathLike,
 
 def main(compressed_files_directory: str or os.PathLike,
          data_directory: str or os.PathLike = os.path.join('../data', 'raw'),
-         download: bool = False):
+         download: int = 0):
     """
     Encapsulation of the data retrieval process (Downloads, extracts, and then generates the final dataset to be used.
     :param compressed_files_directory: str, the base directory to which downloaded files will be saved.
     :param data_directory: str, the base directory to which extracted images will be saved
-    :param download: bool, whither to download the datasets as zip files.
+    :param download: int, whither to download the datasets as zip files.
     :return:
     """
-    if download:
+    if download > 0:
         download_and_extract(compressed_files_directory=compressed_files_directory,
                              data_directory=data_directory)
 
@@ -50,7 +50,7 @@ def main(compressed_files_directory: str or os.PathLike,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--download', type=bool, default=False)
+    parser.add_argument('--download', type=int, default=0)
     parser.add_argument('--compressed_files_directory', type=str, default=os.path.join('../data', 'zipped'))
     parser.add_argument('--data_directory', type=str, default=os.path.join('../data', 'raw'))
     args = vars(parser.parse_args())

@@ -81,7 +81,7 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
         bboxes = [x_min, y_min, x_max, y_max]
         image = plt.imread(image_path)
         image, bboxes = adaptive_resize(image, bboxes, new_size=IMAGE_SIZE)
-        plt.imsave(image, image_path)
+        plt.imsave(image_path, image)
         # Create a record for the example
         example_record = create_record(image_path=image_path,
                                        index=index,

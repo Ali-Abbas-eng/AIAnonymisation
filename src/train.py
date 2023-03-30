@@ -69,7 +69,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_steps', type=int, default=160_000)
     parser.add_argument('--eval_steps', type=int, default=50_000)
     parser.add_argument('--log_freq', type=int, default=500)
-    parser.add_argument('--checkpoint_freq', type=int, default=40_000)
+    parser.add_argument('--checkpoints_freq', type=int, default=40_000)
     parser.add_argument('--batch_size', type=int, default=4)
 
     args = vars(parser.parse_args())

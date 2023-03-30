@@ -1,5 +1,4 @@
 import itertools
-import data_tools
 import os
 from tqdm.auto import tqdm
 from zipfile import ZipFile
@@ -104,7 +103,7 @@ def write_data(data_directory_train: Union[str, os.PathLike],
                annotation_file_train: Union[str, os.PathLike],
                annotation_file_valid: Union[str, os.PathLike],
                create_record: Callable,
-               info_path: str = data_tools.WIDER_FACE_INFORMATION_FILE):
+               info_path: str or os.PathLike):
     """
     This function writes the data to the information file.
 

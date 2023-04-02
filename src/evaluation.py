@@ -1,17 +1,15 @@
 import os
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
-from detectron2.data import build_detection_test_loader
-from detectron2.evaluation import COCOEvaluator, inference_on_dataset
-from data_tools import register_datasets
 import matplotlib.pyplot as plt
-import json
+from detectron2.evaluation import COCOEvaluator, inference_on_dataset
+from detectron2.data import build_detection_test_loader
 
 
-def initialize(yaml_url: str,
-               weights_path: str or os.PathLike,
-               output_directory: str or os.PathLike,
-               data_directory: str or os.PathLike = 'data'):
+def run_evaluation(yaml_url: str,
+                   weights_path: str or os.PathLike,
+                   output_directory: str or os.PathLike,
+                   evaluation_dataset_name: str):
     """
     Initializes the model and evaluates it on the validation dataset.
 
@@ -19,17 +17,11 @@ def initialize(yaml_url: str,
         yaml_url (str): URL to the YAML configuration file.
         weights_path (str or os.PathLike): Path to the model weights file.
         output_directory (str or os.PathLike): Path to the output directory.
-        data_directory (str or os.PathLike): Path to the data directory.
+        evaluation_dataset_name (str): Name of the dataset to be used for evaluation.
 
     Returns:
         None
     """
-    try:
-        # Register datasets if they haven't been registered already
-        register_datasets(data_directory='data', thing_classes=['FACE', 'LP'])
-    except AssertionError:
-        pass
-
     # Load configuration from YAML file
     cfg = get_cfg()
     cfg.merge_from_file(yaml_url)
@@ -37,22 +29,17 @@ def initialize(yaml_url: str,
     # Load model weights
     cfg.MODEL.WEIGHTS = weights_path
 
-    # Set dataset to use for testing
-    cfg.DATASETS.TEST = ('val', )
-
     # Create predictor object for making predictions on test dataset
     predictor = DefaultPredictor(cfg)
 
     # Create evaluator object for evaluating model performance on test dataset
-    evaluator = COCOEvaluator('val', cfg, False, output_dir=output_directory)
+    evaluator = COCOEvaluator(evaluation_dataset_name, output_dir=output_directory)
 
     # Build test dataset loader
-    val_loader = build_detection_test_loader(cfg, "my_dataset_val")
+    val_loader = build_detection_test_loader(cfg, dataset=evaluation_dataset_name)
 
     # Evaluate model performance on test dataset and save metrics to file
-    inference_on_dataset(predictor.model, val_loader, evaluator)
-    with open(os.path.join(output_directory, 'metrics.json'), "r") as f:
-        metrics = json.load(f)
+    metrics = inference_on_dataset(predictor.model, val_loader, evaluator)
 
     # Plot AP and AR curves using metrics from evaluation
     ap = metrics["bbox"]["AP"]

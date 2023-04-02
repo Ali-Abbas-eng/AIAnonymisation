@@ -138,12 +138,6 @@ def get_cfg(network_base_name: str,
     # Set batch size
     configurations.SOLVER.IMS_PER_BATCH = batch_size
 
-    # Set image size
-    configurations.INPUT.MIN_SIZE_TRAIN = 256
-    configurations.INPUT.MAX_SIZE_TRAIN = 256
-    configurations.INPUT.MIN_SIZE_TEST = 256
-    configurations.INPUT.MAX_SIZE_TEST = 256
-
     # Set checkpointing frequency
     configurations.SOLVER.CHECKPOINT_PERIOD = checkpoints_freq
 
@@ -158,5 +152,11 @@ def get_cfg(network_base_name: str,
 
     # Set initial learning rate
     configurations.SOLVER.BASE_LR = initial_learning_rate
+
+    # Set the number of classes
+    configurations.MODEL.ROI_HEADS.NUM_CLASSES = 2
+
+    # create the output folder
+    os.makedirs(configurations.OUTPUT_DIR, exist_ok=True)
 
     return configurations

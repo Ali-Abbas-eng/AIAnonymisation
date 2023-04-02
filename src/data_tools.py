@@ -17,11 +17,11 @@ CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
 CELEB_A_ANNOTATIONS_FILE = os.path.join('data', 'raw', 'CelebA', 'anno', 'list_bbox_celeba.txt')
 CELEB_A_INFORMATION_FILE = os.path.join('data', 'raw', 'CelebA', 'celeba_info.json')
 
-WIDER_FACE_IMAGES_DIRECTORY_TRAIN = os.path.join('data', 'raw', 'WIDER FACE', 'WIDER_train', 'images')
-WIDER_FACE_ANNOTATIONS_FILE_TRAIN = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face_split',
+WIDER_FACE_IMAGES_DIRECTORY_TRAIN = os.path.join('data', 'raw', 'WIDER_FACE', 'WIDER_train', 'images')
+WIDER_FACE_ANNOTATIONS_FILE_TRAIN = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face_split',
                                                  'wider_face_train_bbx_gt.txt')
-WIDER_FACE_IMAGES_DIRECTORY_VALID = os.path.join('data', 'raw', 'WIDER FACE', 'WIDER_val', 'images')
-WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face_split',
+WIDER_FACE_IMAGES_DIRECTORY_VALID = os.path.join('data', 'raw', 'WIDER_FACE', 'WIDER_val', 'images')
+WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face_split',
                                                  'wider_face_val_bbx_gt.txt')
 
 WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face.json')
@@ -56,20 +56,40 @@ CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
 IMAGE_SIZE = (360, 580)
 
 
-def adaptive_resize(image: np.ndarray, bounding_boxes: List[int], new_size: tuple):
+def adaptive_resize(image, bounding_boxes, new_size):
+    """
+    Resizes an image and its corresponding bounding boxes.
+
+    Args:
+        image (numpy.ndarray): The image to resize.
+        bounding_boxes (list): A list of bounding boxes in the format [x_min, y_min, x_max, y_max].
+        new_size (tuple): The new size of the image in the format (width, height).
+
+    Returns:
+        numpy.ndarray: The resized image.
+        list: A list of bounding boxes with updated coordinates.
+    """
+    # Get the old size of the image
     old_size = image.shape[:2]
-    ratio = min(float(new_size[i])/old_size[i] for i in range(len(old_size)))
-    new_size = tuple([int(dim*ratio) for dim in old_size])
-    image = cv2.resize(image, (new_size[1], new_size[0]))
+
+    # Calculate the scaling factor for each dimension
+    scale_x = new_size[0] / old_size[1]
+    scale_y = new_size[1] / old_size[0]
+
+    # Resize the image
+    resized_image = cv2.resize(image, new_size)
+
+    # Update the bounding box coordinates
     new_bounding_boxes = []
     for i in range(0, len(bounding_boxes), 4):
-        bounding_box = bounding_boxes[i: i + 4]
-        bounding_box[0] = int(bounding_box[0] * ratio)
-        bounding_box[1] = int(bounding_box[1] * ratio)
-        bounding_box[2] = int(bounding_box[2] * ratio)
-        bounding_box[3] = int(bounding_box[3] * ratio)
-        new_bounding_boxes.extend(bounding_box)
-    return image, new_bounding_boxes
+        bbox = bounding_boxes[i: i+4]
+        x_min = int(bbox[0] * scale_x)
+        y_min = int(bbox[1] * scale_y)
+        x_max = int(bbox[2] * scale_x)
+        y_max = int(bbox[3] * scale_y)
+        new_bounding_boxes.append([x_min, y_min, x_max, y_max])
+
+    return resized_image, new_bounding_boxes
 
 
 def create_record(image_path: str,

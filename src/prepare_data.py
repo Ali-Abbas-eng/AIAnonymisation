@@ -51,7 +51,7 @@ def main(compressed_files_directory: str or os.PathLike,
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--download', type=int, default=0)
-    parser.add_argument('--compressed_files_directory', type=str, default=os.path.join('../data', 'zipped'))
-    parser.add_argument('--data_directory', type=str, default=os.path.join('../data', 'raw'))
+    parser.add_argument('--compressed_files_directory', type=str, default=os.path.join('data', 'zipped'))
+    parser.add_argument('--data_directory', type=str, default=os.path.join('data', 'raw'))
     args = vars(parser.parse_args())
     main(**args)

@@ -8,7 +8,7 @@ import multivolumefile
 import matplotlib.pyplot as plt
 from data_tools import adaptive_resize, IMAGE_SIZE
 from joblib import Parallel, delayed
-import multiprocessing
+from utils import tqdm_joblib
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('../data', 'zipped'),
@@ -67,31 +67,31 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
     # Convert each line into a list of integers and strings
     annotations = [[int(item) if item.isnumeric() else item for item in line.split()] for line in annotations]
 
-    with tqdm(total=len(annotations), desc='Generating Data From CelebA') as progress_bar:
-        def generate_data_point(index, example):
-            # Get the image path
-            image_path = os.path.join(data_directory, example[0])
+    def generate_data_point(index, example):
+        # Get the image path
+        image_path = os.path.join(data_directory, example[0])
 
-            # Get the bounding box coordinates
-            x_min = example[1]
-            y_min = example[2]
-            x_max = example[1] + example[3]
-            y_max = example[2] + example[4]
-            bboxes = [x_min, y_min, x_max, y_max]
-            image = plt.imread(image_path)
-            image, bboxes = adaptive_resize(image, bboxes, new_size=IMAGE_SIZE)
-            plt.imsave(image_path, image)
-            # Create a record for the example
-            example_record = create_record(image_path=image_path,
-                                           index=index,
-                                           bounding_boxes=bboxes,
-                                           category_id=0)
-            progress_bar.update()
-            return example_record
+        # Get the bounding box coordinates
+        x_min = example[1]
+        y_min = example[2]
+        x_max = example[1] + example[3]
+        y_max = example[2] + example[4]
+        bboxes = [x_min, y_min, x_max, y_max]
+        image = plt.imread(image_path)
+        image, bboxes = adaptive_resize(image, bboxes, new_size=IMAGE_SIZE)
+        plt.imsave(image_path, image)
+        # Create a record for the example
+        example_record = create_record(image_path=image_path,
+                                       index=index,
+                                       bounding_boxes=bboxes,
+                                       category_id=0)
+        # progress_bar.update()
+        return example_record
 
+    with tqdm_joblib(tqdm(total=len(annotations), desc='Generating Data From CelebA')):
         # Create an empty list to store the dataset records
-        dataset_records = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(generate_data_point)(index, row)
-                                                                       for index, row in enumerate(annotations))
+        dataset_records = Parallel(n_jobs=16)(delayed(generate_data_point)(index, row)
+                                              for index, row in enumerate(annotations))
 
     # Save the dataset records to a json file
     json.dump(dataset_records, open(info_path, 'w'))

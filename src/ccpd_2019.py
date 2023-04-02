@@ -81,6 +81,22 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
     # Calculate the total number of progress bar bars
     progress_bar_bars = sum(len(files) for _, __, files in os.walk(data_directory))
 
+    def create_data_point(base_dir, file_name):
+        if file_name.endswith('.jpg'):
+            # Decode the file name to extract the coordinates
+            coordinates = decode_file_name(file)
+            if coordinates is not None:
+                image_path = os.path.join(root, file)
+                image = plt.imread(image_path)
+                image, bboxes = adaptive_resize(image, coordinates, new_size=IMAGE_SIZE)
+                plt.imsave(image_path, image)
+                # Create a record and append it to the dataset_dicts
+                record = create_record(image_path=image_path,
+                                       bounding_boxes=coordinates,
+                                       category_id=1,
+                                       index=index)
+                dataset_dicts.append(record)
+                index += 1
     # Create a progress bar
     with tqdm(total=progress_bar_bars) as progress_bar:
         # Traverse through the data directory
@@ -88,24 +104,12 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
             # Traverse through the files in the directory
             for file in files:
                 # Check if the file is an image file
-                if file.endswith('.jpg'):
-                    # Decode the file name to extract the coordinates
-                    coordinates = decode_file_name(file)
-                    if coordinates is not None:
-                        image_path = os.path.join(root, file)
-                        image = plt.imread(image_path)
-                        image, bboxes = adaptive_resize(image, coordinates, new_size=IMAGE_SIZE)
-                        plt.imsave(image_path, image)
-                        # Create a record and append it to the dataset_dicts
-                        record = create_record(image_path=image_path,
-                                               bounding_boxes=coordinates,
-                                               category_id=1,
-                                               index=index)
-                        dataset_dicts.append(record)
-                        index += 1
+
 
                     # Update the progress bar
                     progress_bar.update()
+
+    dataset_dicts = []
 
     # Dump the dataset_dicts to the info file
     json.dump(dataset_dicts, open(info_path, 'w'))

@@ -9,6 +9,7 @@ from typing import Union, Callable
 from data_tools import adaptive_resize, IMAGE_SIZE
 from joblib import Parallel, delayed
 import multiprocessing
+from utils import tqdm_joblib
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike],
@@ -71,12 +72,45 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
     annotations = open(annotations_file, 'r').read().split('\n')
 
     # Initialize the dataset dictionary and file id
-    dataset_dicts = []
     file_id = 0
-    with tqdm(total=len(annotations), desc='Generating Data From CelebA') as progress_bar:
-        def generate_data_point(idx, row):
+
+    # def generate_data_point(row, image_id):
+    #     # Check if the line ends with '.jpg'
+    #     if row.endswith('.jpg'):
+    #         idx = annotations.index(row)
+    #         # Get the file internal path and image path
+    #         file_internal_path = os.path.join(*row.split('/'))
+    #         image_path = os.path.join(data_directory, file_internal_path)
+    #
+    #         # Get the number of images and bounding boxes
+    #         num_faces = int(annotations[idx + 1])
+    #         bboxes = []
+    #         for i in range(idx + 2, idx + 2 + num_faces):
+    #             bbox = [int(coordinate) for coordinate in annotations[i].split()[:4]]
+    #             bbox[2] += bbox[0]
+    #             bbox[3] += bbox[1]
+    #             bboxes.append(bbox)
+    #         bboxes = list(itertools.chain.from_iterable(bboxes))
+    #         image = plt.imread(image_path)
+    #         image, bboxes = adaptive_resize(image, bboxes, new_size=IMAGE_SIZE)
+    #         plt.imsave(image_path, image)
+    #
+    #         # Create the record and append it to the dataset dictionary
+    #         record = create_record(image_path=image_path,
+    #                                bounding_boxes=bboxes,
+    #                                index=image_id,
+    #                                category_id=0)
+    #
+    #         return record
+
+    lines_of_interest = [line for line in annotations if line.endswith('.jpg')]
+    with tqdm(total=len(lines_of_interest), desc='Generating Data From Wider Face') as progress_bar:
+        # dataset_dicts = Parallel(n_jobs=16)(delayed(generate_data_point)(line, index)
+        #                                     for index, line in enumerate(lines_of_interest))
+        def generate_data_point(row, image_id):
             # Check if the line ends with '.jpg'
             if row.endswith('.jpg'):
+                idx = annotations.index(row)
                 # Get the file internal path and image path
                 file_internal_path = os.path.join(*row.split('/'))
                 image_path = os.path.join(data_directory, file_internal_path)
@@ -97,13 +131,12 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
                 # Create the record and append it to the dataset dictionary
                 record = create_record(image_path=image_path,
                                        bounding_boxes=bboxes,
-                                       index=file_id,
+                                       index=image_id,
                                        category_id=0)
                 progress_bar.update()
                 return record
 
-    dataset_dicts = Parallel(n_jobs=multiprocessing.cpu_count())(delayed(generate_data_point)(index, line)
-                                                                 for index, line in enumerate(annotations))
+        dataset_dicts = [generate_data_point(line, index) for index, line in enumerate(lines_of_interest)]
     return dataset_dicts
 
 
@@ -137,3 +170,4 @@ def write_data(data_directory_train: Union[str, os.PathLike],
 
     # Write the data to the information file
     json.dump(data1, open(info_path, 'w'))
+

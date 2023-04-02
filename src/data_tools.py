@@ -24,7 +24,7 @@ WIDER_FACE_IMAGES_DIRECTORY_VALID = os.path.join('data', 'raw', 'WIDER_FACE', 'W
 WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face_split',
                                                  'wider_face_val_bbx_gt.txt')
 
-WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER FACE', 'wider_face.json')
+WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face.json')
 
 CELEB_A_NUM_CANDIDATES = {
     'train': 300,
@@ -73,11 +73,11 @@ def adaptive_resize(image, bounding_boxes, new_size):
     old_size = image.shape[:2]
 
     # Calculate the scaling factor for each dimension
-    scale_x = new_size[0] / old_size[1]
-    scale_y = new_size[1] / old_size[0]
+    scale_x = new_size[0] / old_size[0]
+    scale_y = new_size[1] / old_size[1]
 
     # Resize the image
-    resized_image = cv2.resize(image, new_size)
+    resized_image = cv2.resize(image, new_size[::-1])
 
     # Update the bounding box coordinates
     new_bounding_boxes = []
@@ -87,7 +87,7 @@ def adaptive_resize(image, bounding_boxes, new_size):
         y_min = int(bbox[1] * scale_y)
         x_max = int(bbox[2] * scale_x)
         y_max = int(bbox[3] * scale_y)
-        new_bounding_boxes.append([x_min, y_min, x_max, y_max])
+        new_bounding_boxes.extend([x_min, y_min, x_max, y_max])
 
     return resized_image, new_bounding_boxes
 

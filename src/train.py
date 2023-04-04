@@ -1,6 +1,8 @@
 from data_tools import register_datasets
-from training_utils import get_cfg, Trainer, EarlyStoppingHook
+from training_utils import get_cfg, Trainer
 import argparse
+from time import sleep
+from tqdm.auto import tqdm
 
 
 def train(network_base_name: str,
@@ -14,7 +16,8 @@ def train(network_base_name: str,
           checkpoints_freq: int = 40_000,
           log_freq: int = 5000,
           batch_size: int = 2,
-          output_directory: str = 'output'):
+          output_directory: str = 'output',
+          delay: int = 6 * 3600):
     """
     Trains a model using the specified configurations.
 
@@ -30,7 +33,10 @@ def train(network_base_name: str,
     :param log_freq: int, the frequency at which to log training details. Default is 5000
     :param batch_size: The batch size to use for training. Default is 2.
     :param output_directory: str, the directory to which training results will be saved
+    :param delay: int, number of seconds to wait before starting execution (in case one wants to start training a model after one is already done training)
     """
+    for _ in tqdm(range(delay), desc='Sleeping'):
+        sleep(1.)
 
     # register the datasets
     register_datasets(data_directory=data_directory, thing_classes=thing_classes)
@@ -50,9 +56,6 @@ def train(network_base_name: str,
     # Create trainer object with configurations
     trainer = Trainer(configurations)
 
-    # register early stopping hook
-    trainer.register_hooks([EarlyStoppingHook(patience=10)])
-
     # Train model
     trainer.train()
 
@@ -71,6 +74,7 @@ if __name__ == '__main__':
     parser.add_argument('--log_freq', type=int, default=500)
     parser.add_argument('--checkpoints_freq', type=int, default=40_000)
     parser.add_argument('--batch_size', type=int, default=4)
+    parser.add_argument('--delay', type=int, default=6 * 3600)
 
     args = vars(parser.parse_args())
 

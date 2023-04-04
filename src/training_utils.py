@@ -29,6 +29,7 @@ class EarlyStoppingHook(hooks.HookBase):
                 self.best_score = current_score
                 self.counter = 0
 
+
 class Trainer(DefaultTrainer):
     """
     A custom trainer class that inherits the DefaultTrainer class from Detectron2.

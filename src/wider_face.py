@@ -7,9 +7,6 @@ import json
 import gdown
 from typing import Union, Callable
 from data_tools import adaptive_resize, IMAGE_SIZE
-from joblib import Parallel, delayed
-import multiprocessing
-from utils import tqdm_joblib
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike],

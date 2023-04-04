@@ -7,8 +7,6 @@ import py7zr
 import multivolumefile
 import matplotlib.pyplot as plt
 from data_tools import adaptive_resize, IMAGE_SIZE
-from joblib import Parallel, delayed
-from utils import tqdm_joblib
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('../data', 'zipped'),

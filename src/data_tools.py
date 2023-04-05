@@ -3,6 +3,7 @@ import itertools
 from detectron2.structures import BoxMode
 import requests
 from detectron2.data import DatasetCatalog, MetadataCatalog
+from detectron2.utils.visualizer import Visualizer
 import random
 from tqdm.auto import tqdm
 import json
@@ -62,6 +63,78 @@ def pre_process_data(image_path: str, bounding_boxes: list):
     image, bounding_boxes = adaptive_resize(image, bounding_boxes, new_size=IMAGE_SIZE)
     plt.imsave(image_path, image)
     return bounding_boxes
+
+
+def plot_images(images):
+    """
+    Plots the input images using matplotlib.
+
+    Args:
+        images (numpy.ndarray): A 4D numpy array containing the images to plot.
+
+    Returns:
+        None
+    """
+    if images.shape[0] > 4:
+        # Create a grid of subplots with 4 columns
+        fig, axs = plt.subplots(nrows=images.shape[0] // 4, ncols=4, figsize=(25, 25))
+        for i in range(images.shape[0]):
+            # Plot the current image in the appropriate subplot
+            axs[i // 4, i % 4].imshow(images[i])
+            axs[i // 4, i % 4].axis('off')
+        plt.show()
+    else:
+        # Create a grid of subplots with 1 column
+        fig, axs = plt.subplots(nrows=images.shape[0], ncols=1, figsize=(25, 25))
+        for i in range(images.shape[0]):
+            # Plot the current image in the appropriate subplot
+            axs[i].imshow(images[i])
+            axs[i].axis('off')
+        plt.show()
+
+
+def visualize_sample(info_file: str, n_samples: int = 8):
+    """
+    Visualize a sample from a custom dataset for detectron2.
+
+    This function takes in a list of dataset records and an index for the sample to be visualized.
+    It reads the image and annotations for the specified sample and displays them using detectron2's
+    Visualizer class.
+
+    Args:
+        info_file (str): The name (path) of the file containing the dataset information to draw from.
+        n_samples (int): The number of images to draw and view.
+    """
+    # retrieve the registered dataset
+    dataset_dicts = json.load(open(info_file))
+    dataset_name = 'visualization_only'
+    register_dataset(info_file, dataset_name)
+
+    # generate random indexes to select images
+    indexes = np.random.permutation(len(dataset_dicts))
+
+    images = []
+    for i in range(n_samples):
+        # Get record for specified sample
+        record = dataset_dicts[indexes[i]]
+
+        # Read image using cv2's imread function
+        img = cv2.imread(record['file_name'])
+
+        # Convert image from BGR to RGB format
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        # Create Visualizer object
+        v = Visualizer(img[:, :, ::-1], metadata=MetadataCatalog.get(dataset_name), scale=1)
+
+        # Use draw_dataset_dict method to draw annotations on image
+        v = v.draw_dataset_dict(record)
+
+        # Add the image to the list
+        images.append(v.get_image()[:, :, ::-1])
+
+    # Display annotated image using matplotlib imshow function
+    plot_images(np.array(images))
 
 
 def adaptive_resize(image, bounding_boxes, new_size):
@@ -246,7 +319,7 @@ def register_dataset(info_file, dataset_name) -> None:
         DatasetCatalog.register(dataset_name, lambda: dataset_dicts)
 
         # Set thing_classes for the current split using MetadataCatalog.get().set()
-        MetadataCatalog.get(dataset_name).set(thing_classes=['fire'])
+        MetadataCatalog.get(dataset_name).set(thing_classes=['Face', 'LP'])
     except AssertionError as ex:
         print(ex)
 
@@ -401,19 +474,6 @@ def select_candidates():
 
     [os.remove(os.path.join(FINAL_DATA_PATH, file))
      for file in os.listdir(FINAL_DATA_PATH) if 'temp' in file]
-
-
-def visualize(json_file: str or os.PathLike = os.path.join('data', 'val_info.json')):
-    import matplotlib.pyplot as plt
-    import cv2
-    data = json.load(open(json_file))
-    for i in range(10):
-        data_point = random.choice(data)
-        image = plt.imread(data_point['file_name'])
-        for a in data_point['annotations']:
-            cv2.rectangle(image, tuple(a['bbox'][:2]), tuple(a['bbox'][2:]), (0, 0, 255), 2)
-        plt.imshow(image)
-        plt.show()
 
 
 def generate_splits(directory: str or os.PathLike,

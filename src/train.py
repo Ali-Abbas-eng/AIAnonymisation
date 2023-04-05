@@ -1,4 +1,4 @@
-from data_tools import register_dataset
+from data_tools import register_dataset, visualize_sample
 from training_utils import get_cfg, Trainer
 import argparse
 from time import sleep
@@ -8,9 +8,8 @@ from tqdm.auto import tqdm
 def train(network_base_name: str,
           weights_path: str,
           yaml_url: str,
-          thing_classes: list,
-          train_data: list,
-          test_data: list,
+          train_files: list,
+          test_files: list,
           initial_learning_rate: float = 0.00025,
           train_steps: int = 120_000,
           eval_steps: int = 50_000,
@@ -26,8 +25,8 @@ def train(network_base_name: str,
     :param weights_path: The path to the weights file.
     :param yaml_url: The URL to the YAML configuration file.
     :param thing_classes: list, a list of strings representing the classes in the dataset
-    :param train_data: list, list of json files containing train dataset catalogues to be registered.
-    :param test_data: list, list of json files containing train dataset catalogues to be registered.
+    :param train_files: list, list of json files containing train dataset catalogues to be registered.
+    :param test_files: list, list of json files containing train dataset catalogues to be registered.
     :param initial_learning_rate: The initial learning rate to use for training. Default is 0.00025.
     :param train_steps: The number of training steps to perform. Default is 120_000.
     :param eval_steps: The number of evaluation steps to perform. Default is 50_000.
@@ -41,7 +40,8 @@ def train(network_base_name: str,
         sleep(1.)
 
     # register the datasets
-    [register_dataset(file, file.split('/')[-1].replace('.json', '')) for file in [*train_data, *test_data]]
+    [register_dataset(file, file.split('/')[-1].replace('.json', '')) for file in [*train_files, *test_files]]
+    [visualize_sample(file) for file in [*train_files, *test_files]]
 
     # Get configurations from specified parameters
     configurations = get_cfg(network_base_name=network_base_name,

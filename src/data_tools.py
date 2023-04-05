@@ -425,4 +425,49 @@ def visualize(json_file: str or os.PathLike = os.path.join('data', 'val_info.jso
         plt.show()
 
 
+def generate_splits(directory: str or os.PathLike,
+                    original_json: str or os.PathLike,
+                    num_examples: dict,
+                    dataset_name: str,
+                    shuffle: bool = True):
+    """
+    Generates train, test and validation splits from a given dataset.
 
+    Args:
+        directory (str or os.PathLike): The directory where the generated splits will be saved.
+        original_json (str or os.PathLike): The path to the original dataset in JSON format.
+        num_examples (dict): A dictionary containing the number of examples for each split.
+                             Must have keys 'train', 'test' and 'val'.
+        dataset_name (str): The name of the dataset.
+        shuffle (bool): If True, shuffles the data before generating the splits. Default is True.
+
+    Returns:
+        None
+    """
+    # Check that the num_examples dictionary has the correct keys
+    assert list(num_examples.keys()) == ['train', 'test', 'val']
+
+    # Load the data from the original JSON file
+    data = json.load(open(original_json))
+
+    # Shuffle the data if shuffle is True
+    if shuffle:
+        indexes = np.random.permutation(len(data))
+    else:
+        indexes = np.arange(len(data))
+
+    # Get the indexes for each split
+    train_indexes = indexes[:num_examples['train']]
+    test_indexes = indexes[len(train_indexes): len(train_indexes) + num_examples['test']]
+    val_indexes = indexes[len(train_indexes) + len(test_indexes):
+                          len(train_indexes) + len(test_indexes) + num_examples['val']]
+
+    # Get the data for each split
+    train_data = [data[int(index)] for index in train_indexes]
+    test_data = [data[int(index)] for index in test_indexes]
+    val_data = [data[int(index)] for index in val_indexes]
+
+    # Save the splits to their respective JSON files
+    json.dump(train_data, open(os.path.join(directory, dataset_name + '_train.json'), 'w'))
+    json.dump(test_data, open(os.path.join(directory, dataset_name + '_test.json'), 'w'))
+    json.dump(val_data, open(os.path.join(directory, dataset_name + '_val.json'), 'w'))

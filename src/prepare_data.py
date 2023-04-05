@@ -50,6 +50,18 @@ def main(compressed_files_directory: str or os.PathLike,
                           pre_process=pre_processing_function)
 
     select_candidates()
+    generate_splits(directory=CCPD_IMAGES_DIRECTORY,
+                    original_json=CCPD_INFORMATION_FILE,
+                    num_examples=CCPD_NUM_CANDIDATES,
+                    dataset_name='ccpd')
+    generate_splits(directory=CCPD_IMAGES_DIRECTORY,
+                    original_json=CCPD_INFORMATION_FILE,
+                    num_examples=CCPD_NUM_CANDIDATES,
+                    dataset_name='celeb')
+    generate_splits(directory=CCPD_IMAGES_DIRECTORY,
+                    original_json=CCPD_INFORMATION_FILE,
+                    num_examples=CCPD_NUM_CANDIDATES,
+                    dataset_name='ccpd')
 
 
 if __name__ == '__main__':

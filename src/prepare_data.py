@@ -18,19 +18,19 @@ def download_and_extract(compressed_files_directory: str or os.PathLike,
 def main(compressed_files_directory: str or os.PathLike,
          data_directory: str or os.PathLike = os.path.join('../data', 'raw'),
          download: int = 0,
-         pre_process_: int = 0):
+         pre_process: int = 0):
     """
     Encapsulation of the data retrieval process (Downloads, extracts, and then generates the final dataset to be used.
     :param compressed_files_directory: str, the base directory to which downloaded files will be saved.
     :param data_directory: str, the base directory to which extracted images will be saved
     :param download: int, whither to download the datasets as zip files.
-    :param pre_process_: int, whither to pre-process the dataset before writing to disk.
+    :param pre_process: int, whither to pre-process the dataset before writing to disk.
     :return:
     """
     if download > 0:
         download_and_extract(compressed_files_directory=compressed_files_directory,
                              data_directory=data_directory)
-    pre_processing_function = pre_process if pre_process_ > 0 else None
+    pre_processing_function = pre_process_data if pre_process > 0 else None
     ccpd_2019.generate_dataset_registration_info(data_directory=CCPD_IMAGES_DIRECTORY,
                                                  info_path=CCPD_INFORMATION_FILE,
                                                  create_record=create_record,

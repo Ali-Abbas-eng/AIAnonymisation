@@ -56,7 +56,7 @@ CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
 IMAGE_SIZE = (360, 580)
 
 
-def pre_process(image_path: str, bounding_boxes: list):
+def pre_process_data(image_path: str, bounding_boxes: list):
     image = plt.imread(image_path)
     image, bounding_boxes = adaptive_resize(image, bounding_boxes, new_size=IMAGE_SIZE)
     plt.imsave(image_path, image)
@@ -401,8 +401,7 @@ def select_candidates():
                                        new_file_base_name='ccpd_2019',
                                        num_examples=CCPD_NUM_CANDIDATES,
                                        output_directory=IMAGES_DATA_DIRECTORY,
-                                       final_data_path=FINAL_DATA_PATH,
-                                       pre_process=pre_process)
+                                       final_data_path=FINAL_DATA_PATH)
 
     merge({key: [celeb_a_files[key], wider_face_files[key], ccpd_2019_files[key]]
            for key in ['train', 'test', 'val']},

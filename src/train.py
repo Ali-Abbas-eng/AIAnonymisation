@@ -40,6 +40,9 @@ def train(network_base_name: str,
         sleep(1.)
 
     # register the datasets
+    train_datasets = [file.split('/')[-1].replace('.json', '') for file in train_files]
+    test_datasets = [file.split('/')[-1].replace('.json', '') for file in test_files]
+
     [register_dataset(file, file.split('/')[-1].replace('.json', '')) for file in [*train_files, *test_files]]
     [visualize_sample(file) for file in [*train_files, *test_files]]
 
@@ -47,6 +50,8 @@ def train(network_base_name: str,
     configurations = get_cfg(network_base_name=network_base_name,
                              weights_path=weights_path,
                              yaml_url=yaml_url,
+                             train_datasets=tuple(train_datasets),
+                             test_datasets=tuple(test_datasets),
                              initial_learning_rate=initial_learning_rate,
                              train_steps=train_steps,
                              eval_freq=eval_steps,

@@ -93,6 +93,8 @@ def convert_to_detectron2_usable_info():
 def get_cfg(network_base_name: str,
             weights_path: str,
             yaml_url: str,
+            train_datasets: tuple,
+            test_datasets: tuple,
             initial_learning_rate: float = 0.00025,
             train_steps: int = 5000,
             eval_freq: int = 5000,
@@ -106,6 +108,8 @@ def get_cfg(network_base_name: str,
     :param network_base_name: The base name of the network.
     :param weights_path: The path to the pre-trained weights file.
     :param yaml_url: The URL to the YAML configuration file.
+    :param train_datasets: list, names of datasets used in training.
+    :param test_datasets: list, names of datasets used in testing.
     :param initial_learning_rate: The initial learning rate for training. (default=0.00025)
     :param train_steps: The number of steps to train for. (default=5000)
     :param eval_freq: The frequency of evaluation w.r.t training steps. (default=5000)
@@ -123,8 +127,8 @@ def get_cfg(network_base_name: str,
     cfg.merge_from_file(get_config_file(yaml_url))
     cfg.MODEL.WEIGHTS = weights_path
     cfg.OUTPUT_DIR = os.path.join(output_directory, network_base_name)
-    cfg.DATASETS.TRAIN = ('train',)
-    cfg.DATASETS.TEST = ('test',)
+    cfg.DATASETS.TRAIN = train_datasets
+    cfg.DATASETS.TEST = test_datasets
     cfg.SOLVER.IMS_PER_BATCH = batch_size
     cfg.SOLVER.CHECKPOINT_PERIOD = checkpoints_freq
     cfg.SOLVER.LOGGER_PERIOD = log_freq

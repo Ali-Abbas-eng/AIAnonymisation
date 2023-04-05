@@ -74,7 +74,6 @@ if __name__ == '__main__':
                                                             'data/raw/WIDER_FACE/wider_face_test.json',
                                                             'data/raw/CCPD2019/ccpd_test.json'])
     parser.add_argument('--output_directory', type=str, default='output')
-    parser.add_argument('--thing_classes', type=list, default=['FACE', 'LP'])
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
     parser.add_argument('--train_steps', type=int, default=160_000)
     parser.add_argument('--eval_steps', type=int, default=50_000)

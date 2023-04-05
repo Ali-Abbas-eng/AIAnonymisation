@@ -63,7 +63,8 @@ def decode_file_name(file_path: str) -> list or None:
 
 def generate_dataset_registration_info(data_directory: str or os.PathLike,
                                        info_path: str or os.PathLike,
-                                       create_record: Callable) -> None:
+                                       create_record: Callable,
+                                       pre_process: Callable) -> None:
     """
     This function generates the dataset registration info.
 
@@ -71,6 +72,7 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
         data_directory (str): The directory containing the data.
         info_path (str): The path of the info file.
         create_record (Callable): a function to creat information object (dictionary) for one data file.
+        pre_process (Callable): pre-processing function
     Returns:
     None
     """
@@ -93,9 +95,8 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
                     coordinates = decode_file_name(file)
                     if coordinates is not None:
                         image_path = os.path.join(root, file)
-                        image = plt.imread(image_path)
-                        image, bboxes = adaptive_resize(image, coordinates, new_size=IMAGE_SIZE)
-                        plt.imsave(image_path, image)
+                        if pre_process is not None:
+                            pre_process(image_path, coordinates)
                         # Create a record and append it to the dataset_dicts
                         record = create_record(image_path=image_path,
                                                bounding_boxes=coordinates,

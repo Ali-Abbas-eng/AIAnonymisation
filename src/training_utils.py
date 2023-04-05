@@ -119,45 +119,19 @@ def get_cfg(network_base_name: str,
     """
 
     # Get base configurations
-    configurations = base_configurations()
+    cfg = base_configurations()
+    cfg.merge_from_file(get_config_file(yaml_url))
+    cfg.MODEL.WEIGHTS = weights_path
+    cfg.OUTPUT_DIR = os.path.join(output_directory, network_base_name)
+    cfg.DATASETS.TRAIN = ('train',)
+    cfg.DATASETS.TEST = ('test',)
+    cfg.SOLVER.IMS_PER_BATCH = batch_size
+    cfg.SOLVER.CHECKPOINT_PERIOD = checkpoints_freq
+    cfg.SOLVER.LOGGER_PERIOD = log_freq
+    cfg.SOLVER.MAX_ITER = train_steps
+    cfg.TEST.EVAL_PERIOD = eval_freq
+    cfg.SOLVER.BASE_LR = initial_learning_rate
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
+    os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 
-    # Merge configurations from YAML file
-    configurations.merge_from_file(get_config_file(yaml_url))
-
-    # Set pre-trained weights
-    configurations.MODEL.WEIGHTS = weights_path
-
-    # Set output directory
-    configurations.OUTPUT_DIR = os.path.join(output_directory, network_base_name)
-
-    # Set training dataset
-    configurations.DATASETS.TRAIN = ('train',)
-
-    # Set test dataset
-    configurations.DATASETS.TEST = ('test',)
-
-    # Set batch size
-    configurations.SOLVER.IMS_PER_BATCH = batch_size
-
-    # Set checkpointing frequency
-    configurations.SOLVER.CHECKPOINT_PERIOD = checkpoints_freq
-
-    # Set logging frequency
-    configurations.SOLVER.LOGGER_PERIOD = log_freq
-
-    # Set maximum number of iterations
-    configurations.SOLVER.MAX_ITER = train_steps
-
-    # Set the frequency of evaluation
-    configurations.TEST.EVAL_PERIOD = eval_freq
-
-    # Set initial learning rate
-    configurations.SOLVER.BASE_LR = initial_learning_rate
-
-    # Set the number of classes
-    configurations.MODEL.ROI_HEADS.NUM_CLASSES = 2
-
-    # create the output folder
-    os.makedirs(configurations.OUTPUT_DIR, exist_ok=True)
-
-    return configurations
+    return cfg

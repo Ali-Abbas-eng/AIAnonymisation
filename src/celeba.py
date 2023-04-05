@@ -43,7 +43,8 @@ def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.j
 def generate_dataset_registration_info(data_directory: str or os.PathLike,
                                        annotations_file: str or os.PathLike,
                                        info_path: str or os.PathLike,
-                                       create_record: Callable):
+                                       create_record: Callable,
+                                       pre_process: Callable):
     """
     Generates dataset records (list of dictionaries) and saves them to a json file.
 
@@ -52,6 +53,7 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
         annotations_file (str or os.PathLike): The path to the annotations file.
         info_path (str or os.PathLike): The path to the information file.
         create_record (Callable): a function to creat information object (dictionary) for one data file.
+        pre_process (Callable): pre-processing function to be used before writing the final dataset to disk.
 
     Returns:
         None
@@ -76,9 +78,8 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
             x_max = example[1] + example[3]
             y_max = example[2] + example[4]
             bboxes = [x_min, y_min, x_max, y_max]
-            image = plt.imread(image_path)
-            image, bboxes = adaptive_resize(image, bboxes, new_size=IMAGE_SIZE)
-            plt.imsave(image_path, image)
+            if pre_process is not None:
+                bboxes = pre_process(image_path, bboxes)
             # Create a record for the example
             example_record = create_record(image_path=image_path,
                                            index=index,

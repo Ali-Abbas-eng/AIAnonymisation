@@ -53,7 +53,8 @@ def download_and_extract(download_directory: Union[str, os.PathLike],
 
 def generate_dataset_registration_info(data_directory: str or os.PathLike,
                                        annotations_file: str or os.PathLike,
-                                       create_record: Callable):
+                                       create_record: Callable,
+                                       pre_process: Callable):
     """
     This function generates dataset registration information from the annotations file and the data directory.
 
@@ -61,6 +62,7 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
         data_directory (str or os.PathLike): The directory containing the data.
         annotations_file (str or os.PathLike): The annotations file.
         create_record (Callable): a function to creat information object (dictionary) for one data file.
+        pre_process (Callable): a function to pre-process the dataset before writing to disk.
 
     Returns:
         dataset_dicts (list): A list of dictionaries containing the dataset registration information.
@@ -68,42 +70,8 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
     # Read the annotations file and split it by new line
     annotations = open(annotations_file, 'r').read().split('\n')
 
-    # Initialize the dataset dictionary and file id
-    file_id = 0
-
-    # def generate_data_point(row, image_id):
-    #     # Check if the line ends with '.jpg'
-    #     if row.endswith('.jpg'):
-    #         idx = annotations.index(row)
-    #         # Get the file internal path and image path
-    #         file_internal_path = os.path.join(*row.split('/'))
-    #         image_path = os.path.join(data_directory, file_internal_path)
-    #
-    #         # Get the number of images and bounding boxes
-    #         num_faces = int(annotations[idx + 1])
-    #         bboxes = []
-    #         for i in range(idx + 2, idx + 2 + num_faces):
-    #             bbox = [int(coordinate) for coordinate in annotations[i].split()[:4]]
-    #             bbox[2] += bbox[0]
-    #             bbox[3] += bbox[1]
-    #             bboxes.append(bbox)
-    #         bboxes = list(itertools.chain.from_iterable(bboxes))
-    #         image = plt.imread(image_path)
-    #         image, bboxes = adaptive_resize(image, bboxes, new_size=IMAGE_SIZE)
-    #         plt.imsave(image_path, image)
-    #
-    #         # Create the record and append it to the dataset dictionary
-    #         record = create_record(image_path=image_path,
-    #                                bounding_boxes=bboxes,
-    #                                index=image_id,
-    #                                category_id=0)
-    #
-    #         return record
-
     lines_of_interest = [line for line in annotations if line.endswith('.jpg')]
     with tqdm(total=len(lines_of_interest), desc='Generating Data From Wider Face') as progress_bar:
-        # dataset_dicts = Parallel(n_jobs=16)(delayed(generate_data_point)(line, index)
-        #                                     for index, line in enumerate(lines_of_interest))
         def generate_data_point(row, image_id):
             # Check if the line ends with '.jpg'
             if row.endswith('.jpg'):
@@ -121,9 +89,8 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
                     bbox[3] += bbox[1]
                     bboxes.append(bbox)
                 bboxes = list(itertools.chain.from_iterable(bboxes))
-                image = plt.imread(image_path)
-                image, bboxes = adaptive_resize(image, bboxes, new_size=IMAGE_SIZE)
-                plt.imsave(image_path, image)
+                if pre_process is not None:
+                    bboxes = pre_process(image_path, bboxes)
 
                 # Create the record and append it to the dataset dictionary
                 record = create_record(image_path=image_path,
@@ -142,7 +109,8 @@ def write_data(data_directory_train: Union[str, os.PathLike],
                annotation_file_train: Union[str, os.PathLike],
                annotation_file_valid: Union[str, os.PathLike],
                create_record: Callable,
-               info_path: str or os.PathLike):
+               info_path: str or os.PathLike,
+               pre_process: Callable):
     """
     This function writes the data to the information file.
 
@@ -153,14 +121,17 @@ def write_data(data_directory_train: Union[str, os.PathLike],
         annotation_file_valid (str or os.PathLike): The validation data annotations file.
         create_record (Callable): a function to creat information object (dictionary) for one data file.
         info_path (str): The path of the information file.
+        pre_process (Callable): the function to pre-process dataset before writing to disk
     """
     # Generate the dataset registration information for the training and validation data
     data1 = generate_dataset_registration_info(data_directory=data_directory_train,
                                                annotations_file=annotation_file_train,
-                                               create_record=create_record)
+                                               create_record=create_record,
+                                               pre_process=pre_process)
     data2 = generate_dataset_registration_info(data_directory=data_directory_valid,
                                                annotations_file=annotation_file_valid,
-                                               create_record=create_record)
+                                               create_record=create_record,
+                                               pre_process=pre_process)
 
     # Combine the training and validation data
     data1.extend(data2)

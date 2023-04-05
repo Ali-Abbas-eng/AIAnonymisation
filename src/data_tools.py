@@ -231,33 +231,24 @@ def create_dataset_dicts(split: str, data_directory: str = 'data'):
         return data
 
 
-def register_datasets(data_directory: str,
-                      thing_classes: list):
+def register_dataset(info_file, dataset_name) -> None:
     """
-    Registers datasets for training, testing, and validation in Detectron2.
-
-    This function registers datasets for training, testing, and validation in Detectron2 using the provided data
-    directory and thing classes. The data directory should contain the data for all three splits (train, test, valid)
-    in separate subdirectories. The thing classes should be a list of class names corresponding to the classes present
-    in the dataset.
-
-    :param data_directory: The path to the directory containing the data for all three splits (train, test, valid).
-    :type data_directory: str
-    :param thing_classes: A list of class names corresponding to the classes present in the dataset.
-    :type thing_classes: list
+    registers the datasets into detectron2's acceptable format
+    :param info_file: str (path-like), the json file holding the dataset information.
+    :param dataset_name: str, the name of the dataset to be registered.
+    :return: None
     """
+    try:
+        # read the file representing the current split
+        dataset_dicts = json.load(open(info_file))
 
-    # Define a function that returns a dataset dictionary for the current split using create_dataset_dicts()
-    def data_getter(data_split: str):
-        return create_dataset_dicts(split=data_split, data_directory=data_directory)
-
-    # Loop over all three splits (train, test, valid)
-    for split in ['train', 'test', 'valid']:
-        # Register the current split with Detectron2 using DatasetCatalog.register()
-        DatasetCatalog.register(split, lambda data_split=split: data_getter(data_split=data_split))
+        # register the current data split
+        DatasetCatalog.register(dataset_name, lambda: dataset_dicts)
 
         # Set thing_classes for the current split using MetadataCatalog.get().set()
-        MetadataCatalog.get(split).set(thing_classes=thing_classes)
+        MetadataCatalog.get(dataset_name).set(thing_classes=['fire'])
+    except AssertionError as ex:
+        print(ex)
 
 
 def modify_record(record, new_index, new_path):

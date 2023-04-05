@@ -1,4 +1,4 @@
-from data_tools import register_datasets
+from data_tools import register_dataset
 from training_utils import get_cfg, Trainer
 import argparse
 from time import sleep
@@ -9,7 +9,8 @@ def train(network_base_name: str,
           weights_path: str,
           yaml_url: str,
           thing_classes: list,
-          data_directory: str = 'data',
+          train_data: list,
+          test_data: list,
           initial_learning_rate: float = 0.00025,
           train_steps: int = 120_000,
           eval_steps: int = 50_000,
@@ -25,7 +26,8 @@ def train(network_base_name: str,
     :param weights_path: The path to the weights file.
     :param yaml_url: The URL to the YAML configuration file.
     :param thing_classes: list, a list of strings representing the classes in the dataset
-    :param data_directory: str, the directory that holds the datasets
+    :param train_data: list, list of json files containing train dataset catalogues to be registered.
+    :param test_data: list, list of json files containing train dataset catalogues to be registered.
     :param initial_learning_rate: The initial learning rate to use for training. Default is 0.00025.
     :param train_steps: The number of training steps to perform. Default is 120_000.
     :param eval_steps: The number of evaluation steps to perform. Default is 50_000.
@@ -39,7 +41,7 @@ def train(network_base_name: str,
         sleep(1.)
 
     # register the datasets
-    register_datasets(data_directory=data_directory, thing_classes=thing_classes)
+    [register_dataset(file, file.split('/')[-1].replace('.json', '')) for file in [*train_data, *test_data]]
 
     # Get configurations from specified parameters
     configurations = get_cfg(network_base_name=network_base_name,
@@ -65,7 +67,12 @@ if __name__ == '__main__':
     parser.add_argument('--network_base_name', type=str, required=True)
     parser.add_argument('--weights_path', type=str, required=True)
     parser.add_argument('--yaml_url', type=str, required=True)
-    parser.add_argument('--data_directory', type=str, default='data')
+    parser.add_argument('--train_files', nargs='+', default=['data/raw/CelebA/celeba_train.json',
+                                                             'data/raw/WIDER_FACE/wider_face_train.json',
+                                                             'data/raw/CCPD2019/ccpd_train.json'])
+    parser.add_argument('--test_files', nargs='+', default=['data/raw/CelebA/celeba_test.json',
+                                                            'data/raw/WIDER_FACE/wider_face_test.json',
+                                                            'data/raw/CCPD2019/ccpd_test.json'])
     parser.add_argument('--output_directory', type=str, default='output')
     parser.add_argument('--thing_classes', type=list, default=['FACE', 'LP'])
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)

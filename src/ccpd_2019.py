@@ -5,8 +5,6 @@ import tarfile
 import json
 import gdown
 from typing import Union, Callable
-from data_tools import adaptive_resize, IMAGE_SIZE
-import matplotlib.pyplot as plt
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike],

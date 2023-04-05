@@ -35,7 +35,7 @@ def main(compressed_files_directory: str or os.PathLike,
                                                  info_path=CCPD_INFORMATION_FILE,
                                                  create_record=create_record,
                                                  pre_process=pre_processing_function)
-    celeba.generate_dataset_registration_info(data_directory=CELEB_A_IMAGES_DIRECTORY,
+    celeba.generate_dataset_registration_info(data_directory=CELEB_A_DATASET_DIRECTORY,
                                               annotations_file=CELEB_A_ANNOTATIONS_FILE,
                                               info_path=CELEB_A_INFORMATION_FILE,
                                               create_record=create_record,

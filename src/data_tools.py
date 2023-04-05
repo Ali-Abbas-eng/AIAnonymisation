@@ -13,7 +13,7 @@ import numpy as np
 from typing import List, Dict
 import cv2
 
-
+CELEB_A_DATASET_DIRECTORY = os.path.join('data', 'raw', 'CelebA')
 CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
 CELEB_A_ANNOTATIONS_FILE = os.path.join('data', 'raw', 'CelebA', 'anno', 'list_bbox_celeba.txt')
 CELEB_A_INFORMATION_FILE = os.path.join('data', 'raw', 'CelebA', 'celeba_info.json')
@@ -194,7 +194,7 @@ def create_record(image_path: str,
 
     # Add the image path, height, width, and index to the record dictionary
     record['file_name'] = image_path
-    record['height'], record['width'] = IMAGE_SIZE
+    record['height'], record['width'] = image.shape[:2]
     record['image_id'] = index
 
     # Add the annotations to the record dictionary and return the record

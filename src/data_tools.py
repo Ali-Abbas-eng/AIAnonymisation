@@ -17,6 +17,7 @@ CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
 CELEB_A_ANNOTATIONS_FILE = os.path.join('data', 'raw', 'CelebA', 'anno', 'list_bbox_celeba.txt')
 CELEB_A_INFORMATION_FILE = os.path.join('data', 'raw', 'CelebA', 'celeba_info.json')
 
+WIDER_FACE_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'WIDER_FACE')
 WIDER_FACE_IMAGES_DIRECTORY_TRAIN = os.path.join('data', 'raw', 'WIDER_FACE', 'WIDER_train', 'images')
 WIDER_FACE_ANNOTATIONS_FILE_TRAIN = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face_split',
                                                  'wider_face_train_bbx_gt.txt')

@@ -54,14 +54,14 @@ def main(compressed_files_directory: str or os.PathLike,
                     original_json=CCPD_INFORMATION_FILE,
                     num_examples=CCPD_NUM_CANDIDATES,
                     dataset_name='ccpd')
-    generate_splits(directory=CCPD_IMAGES_DIRECTORY,
-                    original_json=CCPD_INFORMATION_FILE,
-                    num_examples=CCPD_NUM_CANDIDATES,
-                    dataset_name='celeb')
-    generate_splits(directory=CCPD_IMAGES_DIRECTORY,
-                    original_json=CCPD_INFORMATION_FILE,
-                    num_examples=CCPD_NUM_CANDIDATES,
-                    dataset_name='ccpd')
+    generate_splits(directory=CELEB_A_IMAGES_DIRECTORY,
+                    original_json=CELEB_A_INFORMATION_FILE,
+                    num_examples=CELEB_A_NUM_CANDIDATES,
+                    dataset_name='celeba')
+    generate_splits(directory=WIDER_FACE_IMAGES_DIRECTORY,
+                    original_json=WIDER_FACE_INFORMATION_FILE,
+                    num_examples=WIDER_FACE_NUM_CANDIDATES,
+                    dataset_name='wider_face')
 
 
 if __name__ == '__main__':

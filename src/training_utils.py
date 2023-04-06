@@ -125,7 +125,7 @@ def get_cfg(network_base_name: str,
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
 
     # Set the number of Regions of Interest to a lower number than the default (512).
-    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 256
 
     # Create the output directory if it doesn't exist
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)

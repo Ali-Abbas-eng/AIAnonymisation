@@ -86,5 +86,6 @@ if __name__ == '__main__':
     parser.add_argument('--compressed_files_directory', type=str, default=os.path.join('data', 'zipped'))
     parser.add_argument('--data_directory', type=str, default=os.path.join('data', 'raw'))
     parser.add_argument('--pre_process', type=int, default=0)
+    parser.add_argument('--combine', type=int, default=1)
     args = vars(parser.parse_args())
     main(**args)

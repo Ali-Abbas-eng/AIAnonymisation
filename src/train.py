@@ -5,8 +5,7 @@ from time import sleep
 from tqdm.auto import tqdm
 
 
-def train(network_base_name: str,
-          weights_path: str,
+def train(weights_path: str,
           yaml_url: str,
           train_files: list,
           test_files: list,
@@ -54,7 +53,7 @@ def train(network_base_name: str,
     [visualize_sample(file) for file in [*train_files, *test_files]]
 
     # Get configurations from specified parameters
-    configurations = get_cfg(network_base_name=network_base_name,
+    configurations = get_cfg(network_base_name=yaml_url.split('/')[-1].replace('json', ''),
                              weights_path=weights_path,
                              yaml_url=yaml_url,
                              train_datasets=tuple(train_datasets),
@@ -76,7 +75,6 @@ def train(network_base_name: str,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--network_base_name', type=str, required=True)
     parser.add_argument('--weights_path', type=str, required=True)
     parser.add_argument('--yaml_url', type=str, required=True)
     parser.add_argument('--train_files', nargs='+', default=['data/raw/CelebA/celeba_train.json',

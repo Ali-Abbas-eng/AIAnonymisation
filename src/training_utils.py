@@ -1,6 +1,5 @@
 import os
 import os.path
-from checkpoints_downloader import get_info
 from detectron2.engine.defaults import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
 from detectron2.config import get_cfg as base_configurations
@@ -60,36 +59,6 @@ class Trainer(DefaultTrainer):
         return evaluator
 
 
-def convert_to_detectron2_usable_info():
-    """
-    A function that converts a list of variations of a model to a format usable by Detectron2.
-
-    Returns:
-        records (list): A list of dictionaries containing information about the model variations in a format usable by
-        Detectron2.
-    """
-
-    # Get information about the model variations
-    info = get_info()
-
-    # Create a list to store the converted information
-    records = []
-
-    # Loop through the information and convert it to a format usable by Detectron2
-    for pair in info:
-        variations_info = pair[0]
-        base_dir = pair[1]
-        for key, value in variations_info.items():
-            record = {}
-            path = os.path.join(base_dir, value.split(os.path.sep)[-1])
-            record['name'] = key
-            record['yaml'] = f'COCO-Detection/{key}.yaml'
-            record['path'] = path
-            records.append(record)
-
-    return records
-
-
 def get_cfg(network_base_name: str,
             weights_path: str,
             yaml_url: str,
@@ -102,19 +71,65 @@ def get_cfg(network_base_name: str,
             log_freq: int = 5000,
             batch_size: int = 2,
             output_directory: str = 'output'):
+    """
+    Generates a configuration object for a network.
+
+    Args:
+        network_base_name (str): The base name of the network.
+        weights_path (str): The path to the weights file.
+        yaml_url (str): The URL of the YAML configuration file.
+        train_datasets (tuple): A tuple of training datasets.
+        test_datasets (tuple): A tuple of testing datasets.
+        initial_learning_rate (float): The initial learning rate. Defaults to 0.00025.
+        train_steps (int): The number of training steps. Defaults to 5000.
+        eval_freq (int): The evaluation frequency. Defaults to 5000.
+        checkpoints_freq (int): The checkpoint frequency. Defaults to 5000.
+        log_freq (int): The logging frequency. Defaults to 5000.
+        batch_size (int): The batch size. Defaults to 2.
+        output_directory (str): The output directory. Defaults to 'output'.
+
+    Returns:
+        cfg: A configuration object for the network.
+    """
+    # Get the base configurations
     cfg = base_configurations()
+
+    # Merge the configurations from the YAML file
     cfg.merge_from_file(get_config_file(yaml_url))
-    cfg.MODEL.WEIGHTS = weights_path if weights_path is not None else get_checkpoint_url(yaml_url)
+
+    # Set the weights path
+    cfg.MODEL.WEIGHTS = weights_path
+
+    # Set the output directory
     cfg.OUTPUT_DIR = os.path.join(output_directory, network_base_name)
+
+    # Set the training and testing datasets
     cfg.DATASETS.TRAIN = train_datasets
     cfg.DATASETS.TEST = test_datasets
+
+    # Set the batch size
     cfg.SOLVER.IMS_PER_BATCH = batch_size
+
+    # Set the checkpoint and logging frequencies
     cfg.SOLVER.CHECKPOINT_PERIOD = checkpoints_freq
     cfg.SOLVER.LOGGER_PERIOD = log_freq
+
+    # Set the maximum number of training steps
     cfg.SOLVER.MAX_ITER = train_steps
+
+    # Set the evaluation frequency
     cfg.TEST.EVAL_PERIOD = eval_freq
+
+    # Set the initial learning rate
     cfg.SOLVER.BASE_LR = initial_learning_rate
+
+    # Set the number of classes
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
+
+    # Set the number of Regions of Interest to a lower number than the default (512).
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
+
+    # Create the output directory if it doesn't exist
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 
     return cfg

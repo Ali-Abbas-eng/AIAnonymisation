@@ -12,8 +12,6 @@ def train(yaml_url: str,
           initial_learning_rate: float = 0.00025,
           train_steps: int = 120_000,
           eval_steps: int = 50_000,
-          checkpoints_freq: int = 40_000,
-          log_freq: int = 5000,
           batch_size: int = 2,
           output_directory: str = 'output',
           delay: int = 6 * 3600):
@@ -28,8 +26,6 @@ def train(yaml_url: str,
     :param initial_learning_rate: The initial learning rate to use for training. Default is 0.00025.
     :param train_steps: The number of training steps to perform. Default is 120_000.
     :param eval_steps: The number of evaluation steps to perform. Default is 50_000.
-    :param checkpoints_freq: int, the frequency at which to make a model checkpoint. Default is 40_000
-    :param log_freq: int, the frequency at which to log training details. Default is 5000
     :param batch_size: The batch size to use for training. Default is 2.
     :param output_directory: str, the directory to which training results will be saved
     :param delay: int, number of seconds to wait before starting execution (in case one wants to start training a model
@@ -56,8 +52,6 @@ def train(yaml_url: str,
                              initial_learning_rate=initial_learning_rate,
                              train_steps=train_steps,
                              eval_freq=eval_steps,
-                             checkpoints_freq=checkpoints_freq,
-                             log_freq=log_freq,
                              batch_size=batch_size,
                              output_directory=output_directory)
 
@@ -72,20 +66,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--yaml_url', type=str, required=True)
     parser.add_argument('--train_files', nargs='+', default=['data/raw/CelebA/celeba_train.json',
-                                                             'data/raw/WIDER_FACE/wider_face_train.json',
                                                              'data/raw/CCPD2019/ccpd_train.json'])
-    parser.add_argument('--test_files', nargs='+', default=['data/raw/CelebA/celeba_test.json',
-                                                            'data/raw/WIDER_FACE/wider_face_test.json',
-                                                            'data/raw/CCPD2019/ccpd_test.json'])
-    parser.add_argument('--combine', type=int, default=1)
+    parser.add_argument('--test_files', nargs='+', default=['data/test.json'])
+    parser.add_argument('--combine', type=int, default=0)
     parser.add_argument('--output_directory', type=str, default='output')
-    parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
-    parser.add_argument('--train_steps', type=int, default=160_000)
-    parser.add_argument('--eval_steps', type=int, default=50_000)
-    parser.add_argument('--log_freq', type=int, default=500)
-    parser.add_argument('--checkpoints_freq', type=int, default=40_000)
-    parser.add_argument('--batch_size', type=int, default=4)
-    parser.add_argument('--delay', type=int, default=6 * 3600)
+    parser.add_argument('--initial_learning_rate', type=float, default=1e-6)
+    parser.add_argument('--train_steps', type=int, default=30_000)
+    parser.add_argument('--eval_steps', type=int, default=10_000)
+    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--delay', type=int, default=0)
 
     args = vars(parser.parse_args())
 

@@ -66,8 +66,6 @@ def get_cfg(network_base_name: str,
             initial_learning_rate: float = 0.00025,
             train_steps: int = 5000,
             eval_freq: int = 5000,
-            checkpoints_freq: int = 5000,
-            log_freq: int = 5000,
             batch_size: int = 2,
             output_directory: str = 'output'):
     """
@@ -81,8 +79,6 @@ def get_cfg(network_base_name: str,
         initial_learning_rate (float): The initial learning rate. Defaults to 0.00025.
         train_steps (int): The number of training steps. Defaults to 5000.
         eval_freq (int): The evaluation frequency. Defaults to 5000.
-        checkpoints_freq (int): The checkpoint frequency. Defaults to 5000.
-        log_freq (int): The logging frequency. Defaults to 5000.
         batch_size (int): The batch size. Defaults to 2.
         output_directory (str): The output directory. Defaults to 'output'.
 
@@ -109,8 +105,8 @@ def get_cfg(network_base_name: str,
     cfg.SOLVER.IMS_PER_BATCH = batch_size
 
     # Set the checkpoint and logging frequencies
-    cfg.SOLVER.CHECKPOINT_PERIOD = checkpoints_freq
-    cfg.SOLVER.LOGGER_PERIOD = log_freq
+    cfg.SOLVER.CHECKPOINT_PERIOD = eval_freq
+    cfg.SOLVER.LOGGER_PERIOD = eval_freq
 
     # Set the maximum number of training steps
     cfg.SOLVER.MAX_ITER = train_steps
@@ -125,7 +121,7 @@ def get_cfg(network_base_name: str,
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
 
     # Set the number of Regions of Interest to a lower number than the default (512).
-    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 256
 
     # Create the output directory if it doesn't exist
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)

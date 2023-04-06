@@ -18,12 +18,17 @@ def download_and_extract(compressed_files_directory: str or os.PathLike,
 def main(compressed_files_directory: str or os.PathLike,
          data_directory: str or os.PathLike = os.path.join('../data', 'raw'),
          download: int = 0,
+         combine: int = 1,
          pre_process: int = 0):
     """
     Encapsulation of the data retrieval process (Downloads, extracts, and then generates the final dataset to be used.
     :param compressed_files_directory: str, the base directory to which downloaded files will be saved.
     :param data_directory: str, the base directory to which extracted images will be saved
     :param download: int, whither to download the datasets as zip files.
+    :param combine: int, to what extent to merge the dataset files:
+                        0: don't merge anything
+                        1: merge test files only
+                        2: merge all files
     :param pre_process: int, whither to pre-process the dataset before writing to disk.
     :return:
     """
@@ -52,7 +57,7 @@ def main(compressed_files_directory: str or os.PathLike,
                     original_json=CCPD_INFORMATION_FILE,
                     num_examples=CCPD_NUM_CANDIDATES,
                     dataset_name='ccpd')
-    generate_splits(directory=CELEB_A_IMAGES_DIRECTORY,
+    generate_splits(directory=CELEB_A_DATASET_DIRECTORY,
                     original_json=CELEB_A_INFORMATION_FILE,
                     num_examples=CELEB_A_NUM_CANDIDATES,
                     dataset_name='celeba')
@@ -60,6 +65,19 @@ def main(compressed_files_directory: str or os.PathLike,
                     original_json=WIDER_FACE_INFORMATION_FILE,
                     num_examples=WIDER_FACE_NUM_CANDIDATES,
                     dataset_name='wider_face')
+    train_files = [os.path.join(CCPD_IMAGES_DIRECTORY, 'ccpd_train.json'),
+                   os.path.join(CELEB_A_DATASET_DIRECTORY, 'celeba_train.json'),
+                   os.path.join(WIDER_FACE_IMAGES_DIRECTORY, 'wider_face_train.json')]
+    test_files = [os.path.join(CCPD_IMAGES_DIRECTORY, 'ccpd_test.json'),
+                  os.path.join(CCPD_IMAGES_DIRECTORY, 'ccpd_val.json'),
+                  os.path.join(CELEB_A_DATASET_DIRECTORY, 'celeba_test.json'),
+                  os.path.join(CELEB_A_DATASET_DIRECTORY, 'celeba_val.json'),
+                  os.path.join(WIDER_FACE_IMAGES_DIRECTORY, 'wider_face_test.json'),
+                  os.path.join(WIDER_FACE_IMAGES_DIRECTORY, 'wider_face_val.json')]
+    if combine > 0:
+        merge(test_files, DATASET_INFO_FILE_TEST)
+    if combine > 1:
+        merge(train_files, DATASET_INFO_FILE_TRAIN)
 
 
 if __name__ == '__main__':

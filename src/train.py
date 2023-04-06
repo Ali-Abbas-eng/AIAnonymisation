@@ -1,4 +1,4 @@
-from data_tools import register_dataset, visualize_sample
+from data_tools import register_dataset, visualize_sample, merge, DATASET_INFO_FILE_TEST, DATASET_INFO_FILE_TRAIN
 from training_utils import get_cfg, Trainer
 import argparse
 from time import sleep
@@ -10,6 +10,7 @@ def train(network_base_name: str,
           yaml_url: str,
           train_files: list,
           test_files: list,
+          combine: int,
           initial_learning_rate: float = 0.00025,
           train_steps: int = 120_000,
           eval_steps: int = 50_000,
@@ -24,7 +25,9 @@ def train(network_base_name: str,
     :param network_base_name: The name of the network base to use.
     :param weights_path: The path to the weights file.
     :param yaml_url: The URL to the YAML configuration file.
-    :param thing_classes: list, a list of strings representing the classes in the dataset
+    :param combine: int, can be one of [0, 1, 2], 0 if each data file represents one split of one dataset,
+                                                  1 if the user wants to combine test files (recommended),
+                                                  2 if the user wants to combine train and test files (not
     :param train_files: list, list of json files containing train dataset catalogues to be registered.
     :param test_files: list, list of json files containing train dataset catalogues to be registered.
     :param initial_learning_rate: The initial learning rate to use for training. Default is 0.00025.
@@ -34,11 +37,15 @@ def train(network_base_name: str,
     :param log_freq: int, the frequency at which to log training details. Default is 5000
     :param batch_size: The batch size to use for training. Default is 2.
     :param output_directory: str, the directory to which training results will be saved
-    :param delay: int, number of seconds to wait before starting execution (in case one wants to start training a model after one is already done training)
+    :param delay: int, number of seconds to wait before starting execution (in case one wants to start training a model
+    after one is already done training)
     """
     for _ in tqdm(range(delay), desc='Sleeping'):
         sleep(1.)
-
+    if combine > 0:
+        test_files = [merge(test_files, DATASET_INFO_FILE_TEST)]
+    if combine > 1:
+        train_files = [merge(train_files, DATASET_INFO_FILE_TRAIN)]
     # register the datasets
     train_datasets = [file.split('/')[-1].replace('.json', '') for file in train_files]
     test_datasets = [file.split('/')[-1].replace('.json', '') for file in test_files]
@@ -78,6 +85,7 @@ if __name__ == '__main__':
     parser.add_argument('--test_files', nargs='+', default=['data/raw/CelebA/celeba_test.json',
                                                             'data/raw/WIDER_FACE/wider_face_test.json',
                                                             'data/raw/CCPD2019/ccpd_test.json'])
+    parser.add_argument('--combine', type=int, default=1)
     parser.add_argument('--output_directory', type=str, default='output')
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
     parser.add_argument('--train_steps', type=int, default=160_000)

@@ -4,7 +4,6 @@ from detectron2.structures import BoxMode
 import requests
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.utils.visualizer import Visualizer
-import random
 from tqdm.auto import tqdm
 import json
 import os
@@ -49,7 +48,8 @@ CCPD_NUM_CANDIDATES = {
 FINAL_DATA_PATH = 'data'
 IMAGES_DATA_DIRECTORY = os.path.join(FINAL_DATA_PATH, 'images')
 
-DATASET_INFO_FILE = os.path.join(FINAL_DATA_PATH, 'info.json')
+DATASET_INFO_FILE_TRAIN = os.path.join(FINAL_DATA_PATH, 'train.json')
+DATASET_INFO_FILE_TEST = os.path.join(FINAL_DATA_PATH, 'test.json')
 
 CCPD_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CCPD2019')
 CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
@@ -58,10 +58,27 @@ CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
 IMAGE_SIZE = (360, 580)
 
 
-def pre_process_data(image_path: str, bounding_boxes: list):
+def pre_process_data(image_path: str, bounding_boxes: list) -> list:
+    """
+    Pre-processes an image by resizing it and its corresponding bounding boxes.
+
+    Args:
+        image_path (str): The path to the image file.
+        bounding_boxes (list): A list of bounding boxes in the format [x_min, y_min, x_max, y_max].
+
+    Returns:
+        list: A list of updated bounding boxes.
+    """
+    # Load the image from the given path
     image = plt.imread(image_path)
+
+    # Resize the image and its corresponding bounding boxes
     image, bounding_boxes = adaptive_resize(image, bounding_boxes, new_size=IMAGE_SIZE)
+
+    # Save the resized image to the same path
     plt.imsave(image_path, image)
+
+    # Return the updated bounding boxes
     return bounding_boxes
 
 
@@ -433,47 +450,30 @@ def select_from_data(json_file: str,
     return files
 
 
-def merge(files, data_path):
-    for key, list_of_files in files.items():
-        data = []
-        for file in list_of_files:
-            new_data = json.load(open(file, 'r'))
-            data.extend(new_data)
-        json.dump(data, open(os.path.join(data_path, f'{key}_info.json'), 'w'))
+def merge(files: list, output_file: str) -> str:
+    """
+    Merges multiple JSON files into a single file.
 
+    Args:
+        files (list): A list of file paths to JSON files to be merged.
+        output_file (str): The path to the output file.
 
-def select_candidates():
-    celeb_a_files = select_from_data(json_file=CELEB_A_INFORMATION_FILE,
-                                     start_indexes={'train': 0, 'test': 0, 'val': 0},
-                                     new_file_base_name='celeb_a',
-                                     num_examples=CELEB_A_NUM_CANDIDATES,
-                                     output_directory=IMAGES_DATA_DIRECTORY,
-                                     final_data_path=FINAL_DATA_PATH)
+    Returns:
+        str: The path to the output file.
+    """
+    # Initialize an empty list to store the data from all files
+    data = []
 
-    wider_face_files = select_from_data(json_file=WIDER_FACE_INFORMATION_FILE,
-                                        start_indexes=CELEB_A_NUM_CANDIDATES,
-                                        new_file_base_name='wider_face',
-                                        num_examples=WIDER_FACE_NUM_CANDIDATES,
-                                        output_directory=IMAGES_DATA_DIRECTORY,
-                                        final_data_path=FINAL_DATA_PATH)
+    # Iterate over each file in the input list
+    for file in files:
+        # Load the data from the current file and extend the data list
+        data.extend(json.load(open(file)))
 
-    ccpd_start_indexes = {
-        key: CELEB_A_NUM_CANDIDATES[key] + WIDER_FACE_NUM_CANDIDATES[key]
-        for key in ['train', 'test', 'val']
-    }
-    ccpd_2019_files = select_from_data(json_file=CCPD_INFORMATION_FILE,
-                                       start_indexes=ccpd_start_indexes,
-                                       new_file_base_name='ccpd_2019',
-                                       num_examples=CCPD_NUM_CANDIDATES,
-                                       output_directory=IMAGES_DATA_DIRECTORY,
-                                       final_data_path=FINAL_DATA_PATH)
+    # Dump the merged data into the output file
+    json.dump(data, open(output_file, 'w'))
 
-    merge({key: [celeb_a_files[key], wider_face_files[key], ccpd_2019_files[key]]
-           for key in ['train', 'test', 'val']},
-          data_path=FINAL_DATA_PATH)
-
-    [os.remove(os.path.join(FINAL_DATA_PATH, file))
-     for file in os.listdir(FINAL_DATA_PATH) if 'temp' in file]
+    # Return the path to the output file
+    return output_file
 
 
 def generate_splits(directory: str or os.PathLike,

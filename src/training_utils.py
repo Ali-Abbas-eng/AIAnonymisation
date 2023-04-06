@@ -4,7 +4,7 @@ from checkpoints_downloader import get_info
 from detectron2.engine.defaults import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
 from detectron2.config import get_cfg as base_configurations
-from detectron2.model_zoo import get_config_file
+from detectron2.model_zoo import get_config_file, get_checkpoint_url
 from detectron2.engine import hooks
 
 
@@ -102,30 +102,9 @@ def get_cfg(network_base_name: str,
             log_freq: int = 5000,
             batch_size: int = 2,
             output_directory: str = 'output'):
-    """
-    This function generates a configuration object for training a neural network.
-
-    :param network_base_name: The base name of the network.
-    :param weights_path: The path to the pre-trained weights file.
-    :param yaml_url: The URL to the YAML configuration file.
-    :param train_datasets: list, names of datasets used in training.
-    :param test_datasets: list, names of datasets used in testing.
-    :param initial_learning_rate: The initial learning rate for training. (default=0.00025)
-    :param train_steps: The number of steps to train for. (default=5000)
-    :param eval_freq: The frequency of evaluation w.r.t training steps. (default=5000)
-    :param checkpoints_freq: int, the frequency at which to make a model checkpoint. Default is 5000
-    :param log_freq: int, the frequency at which to log training details. Default is 5000
-    :param batch_size: The batch size to use during training. (default=2)
-    :param output_directory: str, the directory to which training results will be saved
-
-    :return configurations:
-        A configuration object with all specified parameters set.
-    """
-
-    # Get base configurations
     cfg = base_configurations()
     cfg.merge_from_file(get_config_file(yaml_url))
-    cfg.MODEL.WEIGHTS = weights_path
+    cfg.MODEL.WEIGHTS = weights_path if weights_path is not None else get_checkpoint_url(yaml_url)
     cfg.OUTPUT_DIR = os.path.join(output_directory, network_base_name)
     cfg.DATASETS.TRAIN = train_datasets
     cfg.DATASETS.TEST = test_datasets

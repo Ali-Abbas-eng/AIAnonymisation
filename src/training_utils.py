@@ -60,7 +60,6 @@ class Trainer(DefaultTrainer):
 
 
 def get_cfg(network_base_name: str,
-            weights_path: str,
             yaml_url: str,
             train_datasets: tuple,
             test_datasets: tuple,
@@ -76,7 +75,6 @@ def get_cfg(network_base_name: str,
 
     Args:
         network_base_name (str): The base name of the network.
-        weights_path (str): The path to the weights file.
         yaml_url (str): The URL of the YAML configuration file.
         train_datasets (tuple): A tuple of training datasets.
         test_datasets (tuple): A tuple of testing datasets.
@@ -98,7 +96,7 @@ def get_cfg(network_base_name: str,
     cfg.merge_from_file(get_config_file(yaml_url))
 
     # Set the weights path
-    cfg.MODEL.WEIGHTS = weights_path
+    cfg.MODEL.WEIGHTS = get_checkpoint_url(yaml_url)
 
     # Set the output directory
     cfg.OUTPUT_DIR = os.path.join(output_directory, network_base_name)

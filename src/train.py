@@ -5,8 +5,7 @@ from time import sleep
 from tqdm.auto import tqdm
 
 
-def train(weights_path: str,
-          yaml_url: str,
+def train(yaml_url: str,
           train_files: list,
           test_files: list,
           combine: int,
@@ -20,9 +19,6 @@ def train(weights_path: str,
           delay: int = 6 * 3600):
     """
     Trains a model using the specified configurations.
-
-    :param network_base_name: The name of the network base to use.
-    :param weights_path: The path to the weights file.
     :param yaml_url: The URL to the YAML configuration file.
     :param combine: int, can be one of [0, 1, 2], 0 if each data file represents one split of one dataset,
                                                   1 if the user wants to combine test files (recommended),
@@ -54,7 +50,6 @@ def train(weights_path: str,
 
     # Get configurations from specified parameters
     configurations = get_cfg(network_base_name=yaml_url.split('/')[-1].replace('json', ''),
-                             weights_path=weights_path,
                              yaml_url=yaml_url,
                              train_datasets=tuple(train_datasets),
                              test_datasets=tuple(test_datasets),
@@ -75,7 +70,6 @@ def train(weights_path: str,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights_path', type=str, required=True)
     parser.add_argument('--yaml_url', type=str, required=True)
     parser.add_argument('--train_files', nargs='+', default=['data/raw/CelebA/celeba_train.json',
                                                              'data/raw/WIDER_FACE/wider_face_train.json',

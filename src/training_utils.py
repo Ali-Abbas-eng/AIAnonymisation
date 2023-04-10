@@ -91,11 +91,13 @@ def get_cfg(network_base_name: str,
     # Merge the configurations from the YAML file
     cfg.merge_from_file(get_config_file(yaml_url))
 
-    # Set the weights path
-    cfg.MODEL.WEIGHTS = get_checkpoint_url(yaml_url)
-
     # Set the output directory
     cfg.OUTPUT_DIR = os.path.join(output_directory, network_base_name)
+
+    # Set the weights path
+    cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, 'model_final.pth')
+    if not os.path.exists(cfg.MODEL.WEIGHTS):
+        cfg.MODEL.WEIGHTS = get_checkpoint_url(yaml_url)
 
     # Set the training and testing datasets
     cfg.DATASETS.TRAIN = train_datasets

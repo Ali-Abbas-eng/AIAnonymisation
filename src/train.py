@@ -45,7 +45,7 @@ def train(yaml_url: str,
     [visualize_sample(file) for file in [*train_files, *test_files]]
 
     # Get configurations from specified parameters
-    configurations = get_cfg(network_base_name=yaml_url.split('/')[-1].replace('json', ''),
+    configurations = get_cfg(network_base_name=yaml_url.split('/')[-1].replace('.yaml', ''),
                              yaml_url=yaml_url,
                              train_datasets=tuple(train_datasets),
                              test_datasets=tuple(test_datasets),
@@ -57,6 +57,9 @@ def train(yaml_url: str,
 
     # Create trainer object with configurations
     trainer = Trainer(configurations)
+
+    # Resume training if possible
+    trainer.resume_or_load(True)
 
     # Train model
     trainer.train()

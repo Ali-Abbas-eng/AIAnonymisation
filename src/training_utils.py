@@ -147,6 +147,6 @@ def get_cfg(network_base_name: str,
 
     # set learning rate decay options
     cfg.SOLVER.GAMMA = 0.9
-    cfg.SOLVER.STEPS = tuple([train_steps // (eval_freq * i) for i in range(train_steps // eval_freq)])
+    cfg.SOLVER.STEPS = tuple([train_steps // (eval_freq * i) for i in range(1, train_steps // eval_freq)])
 
     return cfg

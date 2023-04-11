@@ -84,6 +84,7 @@ def get_cfg(network_base_name: str,
             train_steps: int = 5000,
             eval_freq: int = 5000,
             batch_size: int = 2,
+            decay_gamma: float = 0.7,
             output_directory: str = 'output'):
     """
     Generates a configuration object for a network.
@@ -97,6 +98,7 @@ def get_cfg(network_base_name: str,
         train_steps (int): The number of training steps. Defaults to 5000.
         eval_freq (int): The evaluation frequency. Defaults to 5000.
         batch_size (int): The batch size. Defaults to 2.
+        decay_gamma: float, decay step for the learning rate scheduler
         output_directory (str): The output directory. Defaults to 'output'.
 
     Returns:
@@ -146,7 +148,7 @@ def get_cfg(network_base_name: str,
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 
     # set learning rate decay options
-    cfg.SOLVER.GAMMA = 0.9
+    cfg.SOLVER.GAMMA = decay_gamma
     cfg.SOLVER.STEPS = tuple([eval_freq * i for i in range(1, train_steps // eval_freq)])
 
     return cfg

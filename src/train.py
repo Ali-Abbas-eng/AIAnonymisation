@@ -9,13 +9,12 @@ from detectron2.solver.build import defaultdict
 def train(yaml_url: str,
           train_files: list,
           test_files: list,
-          combine: int,
           initial_learning_rate: float = 0.00025,
           train_steps: int = 120_000,
           eval_steps: int = 50_000,
           batch_size: int = 2,
           output_directory: str = 'output',
-          delay: int = 6 * 3600):
+          decay_gamma: float = 0.7):
     """
     Trains a model using the specified configurations.
     :param yaml_url: The URL to the YAML configuration file.
@@ -29,15 +28,9 @@ def train(yaml_url: str,
     :param eval_steps: The number of evaluation steps to perform. Default is 50_000.
     :param batch_size: The batch size to use for training. Default is 2.
     :param output_directory: str, the directory to which training results will be saved
-    :param delay: int, number of seconds to wait before starting execution (in case one wants to start training a model
+    :param decay_gamma: float, decay step for the learning rate scheduler
     after one is already done training)
     """
-    for _ in tqdm(range(delay), desc='Sleeping'):
-        sleep(1.)
-    if combine > 0:
-        test_files = [merge(test_files, DATASET_INFO_FILE_TEST)]
-    if combine > 1:
-        train_files = [merge(train_files, DATASET_INFO_FILE_TRAIN)]
     # register the datasets
     train_datasets = [file.split('/')[-1].replace('.json', '') for file in train_files]
     test_datasets = [file.split('/')[-1].replace('.json', '') for file in test_files]
@@ -50,6 +43,7 @@ def train(yaml_url: str,
                              yaml_url=yaml_url,
                              train_datasets=tuple(train_datasets),
                              test_datasets=tuple(test_datasets),
+                             decay_gamma=decay_gamma,
                              initial_learning_rate=initial_learning_rate,
                              train_steps=train_steps,
                              eval_freq=eval_steps,
@@ -71,13 +65,12 @@ if __name__ == '__main__':
     parser.add_argument('--train_files', nargs='+', default=['data/raw/CelebA/celeba_train.json',
                                                              'data/raw/CCPD2019/ccpd_train.json'])
     parser.add_argument('--test_files', nargs='+', default=['data/test.json'])
-    parser.add_argument('--combine', type=int, default=0)
+    parser.add_argument('--decay_gamma', type=float, default=0.7)
     parser.add_argument('--output_directory', type=str, default='output')
     parser.add_argument('--initial_learning_rate', type=float, default=1e-6)
     parser.add_argument('--train_steps', type=int, default=30_000)
     parser.add_argument('--eval_steps', type=int, default=10_000)
     parser.add_argument('--batch_size', type=int, default=2)
-    parser.add_argument('--delay', type=int, default=0)
 
     args = vars(parser.parse_args())
 

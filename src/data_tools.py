@@ -28,21 +28,21 @@ WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER_FACE', 'w
 WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face.json')
 
 CELEB_A_NUM_CANDIDATES = {
-    'train': 300,
-    'test': 10_0,
-    'val': 10_0
+    'train': 30000,
+    'test': 5000,
+    'val': 5000
 }
 
-WIDER_FACE_NUM_CANDIDATES = {
-    'train': 10_0,
-    'test': 20,
-    'val': 20
-}
+# WIDER_FACE_NUM_CANDIDATES = {
+#     'train': 10_0,
+#     'test': 1000,
+#     'val': 1000
+# }
 
 CCPD_NUM_CANDIDATES = {
-    'train': 400,
-    'test': 12_0,
-    'val': 12_0
+    'train': 30000,
+    'test': 5000,
+    'val': 5000
 }
 
 FINAL_DATA_PATH = 'data'
@@ -50,6 +50,7 @@ IMAGES_DATA_DIRECTORY = os.path.join(FINAL_DATA_PATH, 'images')
 
 DATASET_INFO_FILE_TRAIN = os.path.join(FINAL_DATA_PATH, 'train.json')
 DATASET_INFO_FILE_TEST = os.path.join(FINAL_DATA_PATH, 'test.json')
+DATASET_INFO_FILE_VAL = os.path.join(FINAL_DATA_PATH, 'val.json')
 
 CCPD_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CCPD2019')
 CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')

@@ -1,52 +1,57 @@
+import argparse
 import os
+import torch
+from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
-import matplotlib.pyplot as plt
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
+from detectron2.model_zoo import get_config_file
+import json
 
 
-def run_evaluation(yaml_url: str,
-                   weights_path: str or os.PathLike,
-                   output_directory: str or os.PathLike,
-                   evaluation_dataset_name: str):
-    """
-    Initializes the model and evaluates it on the validation dataset.
+def evaluate(yaml_url: str or os.PathLike,
+             model_weights: str or os.PathLike,
+             test_data_file: str or os.PathLike,
+             output_dir: str or os.PathLike):
 
-    Args:
-        yaml_url (str): URL to the YAML configuration file.
-        weights_path (str or os.PathLike): Path to the model weights file.
-        output_directory (str or os.PathLike): Path to the output directory.
-        evaluation_dataset_name (str): Name of the dataset to be used for evaluation.
+    # Set device to CPU
+    torch.set_grad_enabled(False)
+    torch.set_num_threads(1)
+    device = torch.device("cpu")
 
-    Returns:
-        None
-    """
-    # Load configuration from YAML file
+    # Load test data in COCO format from a JSON file
+    test_data = json.load(open(test_data_file, 'r'))
+    test_dataset_name = "test_data"
+
+    # Register test dataset
+    try:
+        DatasetCatalog.register(test_dataset_name, lambda: test_data)
+    except AssertionError:
+        print('Data is already registered')
+
+    # Set the class names
+    MetadataCatalog.get(test_dataset_name).set(thing_classes=["FACE", "LP"])
+
+    # Load trained model
     cfg = get_cfg()
-    cfg.merge_from_file(yaml_url)
-
-    # Load model weights
-    cfg.MODEL.WEIGHTS = weights_path
-
-    # Create predictor object for making predictions on test dataset
+    base_name = yaml_url.replace('.yaml', '').replace('COCO-Detection/', '')
+    cfg.merge_from_file(get_config_file(yaml_url))
+    cfg.MODEL.WEIGHTS = model_weights
+    cfg.MODEL.DEVICE = str(device)
     predictor = DefaultPredictor(cfg)
 
-    # Create evaluator object for evaluating model performance on test dataset
-    evaluator = COCOEvaluator(evaluation_dataset_name, output_dir=output_directory)
+    # Evaluate model on test dataset
+    evaluator = COCOEvaluator(test_dataset_name, cfg, False, output_dir=os.path.join(output_dir, base_name, 'test'))
+    val_loader = build_detection_test_loader(cfg, test_dataset_name)
+    inference_on_dataset(predictor.model, val_loader, evaluator)
 
-    # Build test dataset loader
-    val_loader = build_detection_test_loader(cfg, dataset=evaluation_dataset_name)
 
-    # Evaluate model performance on test dataset and save metrics to file
-    metrics = inference_on_dataset(predictor.model, val_loader, evaluator)
-
-    # Plot AP and AR curves using metrics from evaluation
-    ap = metrics["bbox"]["AP"]
-    ar = metrics["bbox"]["AR"]
-    plt.plot(ap)
-    plt.plot(ar)
-    plt.xlabel("Iteration")
-    plt.ylabel("Metric")
-    plt.legend(["AP", "AR"])
-    plt.show()
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--yaml_url', type=str, required=True)
+    parser.add_argument('--model_weights', type=str, required=True)
+    parser.add_argument('--test_data_file', type=str, default=os.path.join('data', 'test.json'))
+    parser.add_argument('--output_dir', type=str, default='output')
+    args = vars(parser.parse_args())
+    evaluate(**args)

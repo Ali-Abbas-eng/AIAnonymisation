@@ -3,6 +3,7 @@ from training_utils import get_cfg, Trainer
 import argparse
 from time import sleep
 from tqdm.auto import tqdm
+from detectron2.solver.build import defaultdict
 
 
 def train(yaml_url: str,
@@ -54,7 +55,6 @@ def train(yaml_url: str,
                              eval_freq=eval_steps,
                              batch_size=batch_size,
                              output_directory=output_directory)
-
     # Create trainer object with configurations
     trainer = Trainer(configurations)
 

@@ -1,10 +1,12 @@
 import os
 import os.path
+import torch
 from detectron2.engine.defaults import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
 from detectron2.config import get_cfg as base_configurations
 from detectron2.model_zoo import get_config_file, get_checkpoint_url
 from detectron2.engine import hooks
+from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
 
 
 class EarlyStoppingHook(hooks.HookBase):
@@ -57,6 +59,21 @@ class Trainer(DefaultTrainer):
         evaluator = COCOEvaluator(dataset_name, cfg, False, output_folder)
 
         return evaluator
+
+    @classmethod
+    def build_optimizer(cls, cfg, model):
+        params = get_default_optimizer_params(
+            model,
+            base_lr=cfg.SOLVER.BASE_LR,
+            weight_decay_norm=cfg.SOLVER.WEIGHT_DECAY_NORM,
+            bias_lr_factor=cfg.SOLVER.BIAS_LR_FACTOR,
+            weight_decay_bias=cfg.SOLVER.WEIGHT_DECAY_BIAS,
+        )
+        return maybe_add_gradient_clipping(cfg, torch.optim.Adam)(
+            params,
+            lr=cfg.SOLVER.BASE_LR,
+            weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+        )
 
 
 def get_cfg(network_base_name: str,
@@ -123,9 +140,13 @@ def get_cfg(network_base_name: str,
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
 
     # Set the number of Regions of Interest to a lower number than the default (512).
-    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 256
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512
 
     # Create the output directory if it doesn't exist
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
+
+    # set learning rate decay options
+    cfg.SOLVER.GAMMA = 0.9
+    cfg.SOLVER.STEPS = tuple([train_steps // (eval_freq * i) for i in range(train_steps // eval_freq)])
 
     return cfg

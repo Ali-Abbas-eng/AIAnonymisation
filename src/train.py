@@ -64,7 +64,7 @@ if __name__ == '__main__':
     parser.add_argument('--yaml_url', type=str, required=True)
     parser.add_argument('--train_files', nargs='+', default=['data/raw/CelebA/celeba_train.json',
                                                              'data/raw/CCPD2019/ccpd_train.json'])
-    parser.add_argument('--test_files', nargs='+', default=['data/test.json'])
+    parser.add_argument('--test_files', nargs='+', default=['data/val.json'])
     parser.add_argument('--decay_gamma', type=float, default=0.7)
     parser.add_argument('--output_directory', type=str, default='output')
     parser.add_argument('--initial_learning_rate', type=float, default=1e-6)

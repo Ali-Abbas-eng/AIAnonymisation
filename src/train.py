@@ -1,26 +1,23 @@
-from data_tools import register_dataset, visualize_sample, merge, DATASET_INFO_FILE_TEST, DATASET_INFO_FILE_TRAIN
+from data_tools import register_dataset, visualize_sample
 from training_utils import get_cfg, Trainer
+import os
 import argparse
-from time import sleep
-from tqdm.auto import tqdm
-from detectron2.solver.build import defaultdict
+from evaluation import evaluate
 
 
 def train(yaml_url: str,
           train_files: list,
           test_files: list,
-          initial_learning_rate: float = 0.00025,
-          train_steps: int = 120_000,
-          eval_steps: int = 50_000,
-          batch_size: int = 2,
-          output_directory: str = 'output',
-          decay_gamma: float = 0.7):
+          initial_learning_rate: float,
+          train_steps: int,
+          eval_steps: int,
+          batch_size: int,
+          output_directory: str,
+          decay_gamma: float,
+          eval_device: str):
     """
     Trains a model using the specified configurations.
     :param yaml_url: The URL to the YAML configuration file.
-    :param combine: int, can be one of [0, 1, 2], 0 if each data file represents one split of one dataset,
-                                                  1 if the user wants to combine test files (recommended),
-                                                  2 if the user wants to combine train and test files (not
     :param train_files: list, list of json files containing train dataset catalogues to be registered.
     :param test_files: list, list of json files containing train dataset catalogues to be registered.
     :param initial_learning_rate: The initial learning rate to use for training. Default is 0.00025.
@@ -29,7 +26,7 @@ def train(yaml_url: str,
     :param batch_size: The batch size to use for training. Default is 2.
     :param output_directory: str, the directory to which training results will be saved
     :param decay_gamma: float, decay step for the learning rate scheduler
-    after one is already done training)
+    :param eval_device: str, the device on which evaluation of the model will be done, default 'cuda' (recommended).
     """
     # register the datasets
     train_datasets = [file.split('/')[-1].replace('.json', '') for file in train_files]
@@ -37,9 +34,9 @@ def train(yaml_url: str,
 
     [register_dataset(file, file.split('/')[-1].replace('.json', '')) for file in [*train_files, *test_files]]
     [visualize_sample(file) for file in [*train_files, *test_files]]
-
+    network_base_name = yaml_url.split('/')[-1].replace('.yaml', '')
     # Get configurations from specified parameters
-    configurations = get_cfg(network_base_name=yaml_url.split('/')[-1].replace('.yaml', ''),
+    configurations = get_cfg(network_base_name=network_base_name,
                              yaml_url=yaml_url,
                              train_datasets=tuple(train_datasets),
                              test_datasets=tuple(test_datasets),
@@ -58,6 +55,12 @@ def train(yaml_url: str,
     # Train model
     trainer.train()
 
+    evaluate(yaml_url=yaml_url,
+             model_weights=os.path.join(output_directory, 'model_final.pth'),
+             test_data_file=os.path.join('data', 'test.json'),
+             output_dir=os.path.join(output_directory, network_base_name, 'test'),
+             device=eval_device)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -71,7 +74,9 @@ if __name__ == '__main__':
     parser.add_argument('--train_steps', type=int, default=30_000)
     parser.add_argument('--eval_steps', type=int, default=10_000)
     parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--eval_device', type=str, default='cuda')
 
     args = vars(parser.parse_args())
 
     train(**args)
+

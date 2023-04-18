@@ -33,11 +33,11 @@ CELEB_A_NUM_CANDIDATES = {
     'val': 5000
 }
 
-# WIDER_FACE_NUM_CANDIDATES = {
-#     'train': 10_0,
-#     'test': 1000,
-#     'val': 1000
-# }
+WIDER_FACE_NUM_CANDIDATES = {
+    'train': 10_0,
+    'test': 1000,
+    'val': 1000
+}
 
 CCPD_NUM_CANDIDATES = {
     'train': 30000,
@@ -137,9 +137,11 @@ def visualize_sample(info_file: str, n_samples: int = 8):
         record = dataset_dicts[indexes[i]]
 
         # Read image using cv2's imread function
+        # noinspection PyUnresolvedReferences
         img = cv2.imread(record['file_name'])
 
         # Convert image from BGR to RGB format
+        # noinspection PyUnresolvedReferences
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         # Create Visualizer object
@@ -176,6 +178,7 @@ def adaptive_resize(image, bounding_boxes, new_size):
     scale_y = new_size[1] / old_size[1]
 
     # Resize the image
+    # noinspection PyUnresolvedReferences
     resized_image = cv2.resize(image, new_size[::-1])
 
     # Update the bounding box coordinates
@@ -380,6 +383,7 @@ def generate_data_split(info: List[Dict],
         A list containing the data for the given split.
     """
     data = []
+    # noinspection PyTypeChecker
     for i, index in tqdm(enumerate(indexes), total=len(indexes), desc=f'Generating Data ({file_base_name}_{split})'):
         # Get the file name and path.
         file_name = info[index]['file_name'].split(os.path.sep)[-1]

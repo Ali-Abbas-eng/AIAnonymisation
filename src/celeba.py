@@ -5,8 +5,6 @@ from typing import Union, Callable
 import gdown
 import py7zr
 import multivolumefile
-import matplotlib.pyplot as plt
-from data_tools import adaptive_resize, IMAGE_SIZE
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.join('../data', 'zipped'),
@@ -30,6 +28,8 @@ def download_and_extract(download_directory: Union[str, os.PathLike] = os.path.j
     zipped_file_path = os.path.join(download_directory, 'img_celeba.7z')
 
     with multivolumefile.open(zipped_file_path, mode='rb') as target_archive:
+        # noinspection PyTypeChecker
+        # it behaves in the exact way we need.
         with py7zr.SevenZipFile(target_archive, 'r') as archive:
             archive.extractall(unzipped_directory)
 

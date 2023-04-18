@@ -1,12 +1,10 @@
 import itertools
 import os
-import matplotlib.pyplot as plt
 from tqdm.auto import tqdm
 from zipfile import ZipFile
 import json
 import gdown
 from typing import Union, Callable
-from data_tools import adaptive_resize, IMAGE_SIZE
 
 
 def download_and_extract(download_directory: Union[str, os.PathLike],
@@ -25,7 +23,9 @@ def download_and_extract(download_directory: Union[str, os.PathLike],
     def unzip(file, unzipped_dir):
         os.makedirs(unzipped_dir, exist_ok=True)
         with ZipFile(file, 'r') as zip_file:
+            # noinspection PyTypeChecker
             for member in tqdm(zip_file.namelist()):
+                # noinspection PyTypeChecker
                 zip_file.extract(member, unzipped_dir)
 
     # Download WIDER FACE train dataset from Google Drive
@@ -45,10 +45,10 @@ def download_and_extract(download_directory: Union[str, os.PathLike],
     # Download WIDER FACE annotations file
     zipped_annotations_files = os.path.join(download_directory, 'wider_face_split.zip')
     gdown.download(url='https://drive.google.com/uc?id=1KcRtgcLprJBnhKpkEkC-FwBdXrdb_nsv',
-                   output=zipped_val_file_path)
+                   output=zipped_annotations_files)
 
     # extract downloaded file
-    unzip(zipped_val_file_path, unzipped_directory)
+    unzip(zipped_annotations_files, unzipped_directory)
 
 
 def generate_dataset_registration_info(data_directory: str or os.PathLike,
@@ -138,4 +138,3 @@ def write_data(data_directory_train: Union[str, os.PathLike],
 
     # Write the data to the information file
     json.dump(data1, open(info_path, 'w'))
-

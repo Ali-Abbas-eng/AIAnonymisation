@@ -56,7 +56,7 @@ def train(yaml_url: str,
     trainer.train()
 
     evaluate(yaml_url=yaml_url,
-             model_weights=os.path.join(output_directory, 'model_final.pth'),
+             model_weights=os.path.join(output_directory, network_base_name, 'model_final.pth'),
              test_data_file=os.path.join('data', 'test.json'),
              output_dir=os.path.join(output_directory, network_base_name, 'test'),
              device=eval_device)
@@ -71,12 +71,11 @@ if __name__ == '__main__':
     parser.add_argument('--decay_gamma', type=float, default=0.7)
     parser.add_argument('--output_directory', type=str, default='output')
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
-    parser.add_argument('--train_steps', type=int, default=30_000)
-    parser.add_argument('--eval_steps', type=int, default=10_000)
-    parser.add_argument('--batch_size', type=int, default=2)
+    parser.add_argument('--train_steps', type=int, default=60_000)
+    parser.add_argument('--eval_steps', type=int, default=30_000)
+    parser.add_argument('--batch_size', type=int, default=1)
     parser.add_argument('--eval_device', type=str, default='cuda')
 
     args = vars(parser.parse_args())
 
     train(**args)
-

@@ -37,15 +37,10 @@ Select the model with the highest AP.
 ## Implementation Details
 
 ### Environment Setup
-- Python 3.8
-- detectron2 0.6
-- PyTorch 1.8 (and corresponding packages like torchvision and torchaudio)
-- numpy (1.24.2)
-- matplotlib (3.7.1)
-- gdown (4.7.1)
+    `conda create -n myenv --file package-list.txt`
 
 ### Dataset Selection
-Datasets are available on Google Drive.
+Datasets are available on Google Drive, in case you want to download the datasets manually (or if gdown raised an exception for overusing the API) you can refer to the dataset links available in the references.
 
 ### Dataset Preparation
 The accepted architecture of a dataset to be input to a detectron2 model is as follows: List[dict(1st instance info), dict(2nd instance info), …, dict(ith instance info)]. Data is extracted after downloading to a directory named raw, and then each dataset information is written to a JSON file in COCO format to be used later in data registration.
@@ -66,29 +61,17 @@ The parameters are fixed through all training experiments:
 - batch size: 1
 
 ### Evaluation Summary 
-Summary of training results showing the best performing model:
+Summary of training results showing the best performing model (for an intuition of which model is more promising for longer training schedule):
 
-|           Model           | Localization Loss  | Classification Loss  | Total Loss  | Average Precision (AP) |
-|:-------------------------:|:------------------:|:--------------------:|:-----------:|:----------------------:|
-| faster_rcnn_R_101_FPN_3x  |       0.0411       |        0.0168        |   0.0636    |          70.6          |
-|  faster_rcnn_R_50_DC5_3x  |       0.0353       |        0.0114        |   0.0566    |         72.11          |
-|  faster_rcnn_R_101_C4_3x  |       0.0373       |        0.0142        |   0.0744    |         71.76          |
-|   retinanet_R_50_FPN_3x   |       0.153        |        0.0247        |    0.182    |         71.08          |
-|  faster_rcnn_R_50_C4_3x   |       0.0332       |        0.0119        |   0.0789    |       **75.72**        |
-|  retinanet_R_101_FPN_3x   |       0.126        |        0.0198        |    0.156    |         68.98          |
+|           Model           | Localization Loss  | Classification Loss | Total Loss  | Average Precision (AP) |
+|:-------------------------:|:------------------:|:-------------------:|:-----------:|:----------------------:|
+| faster_rcnn_R_101_FPN_3x  |       0.0411       |       0.0168        |   0.0636    |          70.6          |
+|  faster_rcnn_R_50_DC5_3x  |       0.0353       |       0.0114        |   0.0566    |         72.11          |
+|  faster_rcnn_R_101_C4_3x  |       0.0373       |       0.0142        |   0.0744    |         71.76          |
+|   retinanet_R_50_FPN_3x   |       0.153        |       0.0247        |    0.182    |         71.08          |
+|  faster_rcnn_R_50_C4_3x   |       0.0332       |       0.0119        |   0.0789    |       **75.72**        |
+|  retinanet_R_101_FPN_3x   |       0.126        |       0.0198        |    0.156    |         68.98          |
 
-### Candidate Model Selection
-faster_rcnn_R_50_C4_3x
-
-## Project Files
-- `ccpd_2019.py`: contains functions for downloading and extracting data, decoding file names, and generating dataset registration info.
-- `celeba.py`: contains functions for downloading and extracting data and generating dataset registration info.
-- `wider_face.py`: contains functions for downloading and extracting data, generating dataset registration info, and writing data.
-- `data_tools.py`: contains variables for dataset directories and information files, as well as functions for pre-processing data, plotting images, visualizing samples, resizing images, creating records, getting annotations, creating dataset dictionaries, registering datasets, modifying records, generating data splits, selecting from data, merging data, and generating splits.
-- `prepare_data.py`: contains functions for downloading and extracting data and a main function that encapsulates the data retrieval process (downloads, extracts, and then generates the final dataset to be used).
-- `evaluate.py`: contains a function for evaluating a model using a given yaml file and model weights on test data.
-- `training_utils.py`: contains a Trainer class that implements the build_evaluator and build_optimizer methods (COCOEvaluator and Adam optimizer respectively) and a function for getting the cfg node object that will be used to instantiate the trainer.
-- `train.py`: contains a function for training a model using a given yaml file on train and test data.
 
 ## Usage
 The following files contain code to handle command line interface:

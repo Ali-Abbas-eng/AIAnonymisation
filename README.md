@@ -5,14 +5,18 @@ The General Data Protection Regulations (GDPR) enforces rules relating to the pr
 
 In light of this, AI can do a great job in determining the position of such information in available data. Our project aims to create a pipeline to pre-process data using AI by automatically determining the location of faces and/or license plates in an image.
 
+![sample predictions of the faster_rcnn_R_50_C4_3x](assets/predictions.png)
+
+
 ## Project Plan
 In order to get a model that can accurately annotate images that might or might not contain faces and/or license plates, the process involves the following steps:
-1. Dataset selection
-2. Data preparation
-3. Model selection
-4. Training
-5. Evaluation
-6. Candidate Model Selection
+- [x] Dataset selection 
+- [x] Data preparation 
+- [x] Model selection
+- [x] Training
+- [x] Evaluation
+- [x] Candidate Model Selection
+- [ ] Train Candidate Model on a Larger Data Sample
 
 ### Plan Details
 #### Dataset Selection

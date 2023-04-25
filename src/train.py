@@ -68,14 +68,15 @@ if __name__ == '__main__':
     parser.add_argument('--train_files', nargs='+', default=['data/raw/CelebA/celeba_train.json',
                                                              'data/raw/CCPD2019/ccpd_train.json'])
     parser.add_argument('--test_files', nargs='+', default=['data/val.json'])
-    parser.add_argument('--decay_gamma', type=float, default=0.7)
+    parser.add_argument('--decay_gamma', type=float, default=0.1)
     parser.add_argument('--output_directory', type=str, default='output')
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
-    parser.add_argument('--train_steps', type=int, default=60_000)
-    parser.add_argument('--eval_steps', type=int, default=30_000)
-    parser.add_argument('--batch_size', type=int, default=1)
+    parser.add_argument('--train_steps', type=int, default=320_000)
+    parser.add_argument('--eval_steps', type=int, default=50_000)
+    parser.add_argument('--batch_size', type=int, default=4)
     parser.add_argument('--eval_device', type=str, default='cuda')
 
     args = vars(parser.parse_args())
 
     train(**args)
+

@@ -1,5 +1,4 @@
 import warnings
-
 import torch
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.engine import DefaultPredictor
@@ -10,7 +9,7 @@ from tqdm import tqdm
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import shutil
+from data_tools import path_fixer
 from detectron2.utils.visualizer import Visualizer
 import argparse
 try:
@@ -24,6 +23,7 @@ def get_predictor(yaml_url: str or os.PathLike,
                   model_weights: str or os.PathLike,
                   test_data_file: str or os.PathLike,
                   device: str,
+                  output_dir: str,
                   threshold: float) -> DefaultPredictor:
     """Returns a DefaultPredictor object for the given model.
 
@@ -64,15 +64,12 @@ def get_predictor(yaml_url: str or os.PathLike,
                   yaml_url=yaml_url,
                   train_datasets=(),
                   test_datasets=(),
-                  output_directory='temp')
+                  output_directory=output_dir)
     cfg.MODEL.WEIGHTS = model_weights
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = threshold
     cfg.MODEL.DEVICE = str(device)
     # Create a DefaultPredictor object with the given configuration and return it
     predictor = DefaultPredictor(cfg)
-
-    # Delete the default output directory and set the output directory to the specified path
-    os.rmdir(cfg.OUTPUT_DIR)
 
     return predictor
 
@@ -97,19 +94,22 @@ def predict_on_video(video_object: str or os.PathLike or np.ndarray,
     """
 
     # Open the video capture object and get the video properties
+    # noinspection PyUnresolvedReferences
     cap = cv2.VideoCapture(video_object)
+    # noinspection PyUnresolvedReferences
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    # noinspection PyUnresolvedReferences
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    # noinspection PyUnresolvedReferences
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+    # noinspection PyUnresolvedReferences
     # Create a video writer object to write the output video
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    # noinspection PyUnresolvedReferences
     video_writer = cv2.VideoWriter(output_path, fourcc, 30.0, (frame_width, frame_height))
 
-    # Loop over each frame in the input video
-    metadata = MetadataCatalog.get("test")
-    metadata.set(thing_classes=["FACE", "Car Plate"])
-    for i in tqdm(range(frame_count), desc='Inference'):
+    for _ in tqdm(range(frame_count), desc='Inference'):
         # Read the current frame from the input video
         _, im = cap.read()
         im = im[:, :, ::-1]
@@ -118,14 +118,13 @@ def predict_on_video(video_object: str or os.PathLike or np.ndarray,
         new_frame = inference_step(predictor, im, metadata, scale)
 
         # Write the resulting frame to the output video
-        video_writer.write(new_frame)
+        video_writer.write(new_frame[:, :, ::-1])
 
     # Release the video writer object
     video_writer.release()
 
-    # Clean up resources and return a handle to the input video
+    # Clean up resources
     del predictor
-    return cv2.VideoCapture(video_object)
 
 
 def infer(target_path: str or os.PathLike or np.ndarray,
@@ -149,11 +148,16 @@ def infer(target_path: str or os.PathLike or np.ndarray,
     scale (float, optional): The scale factor for the image size. Default is 1.
     threshold (float, optional): The detection threshold. Default is 0.7.
     """
+    target_path = path_fixer(target_path)
+    output_path = path_fixer(output_path)
+    test_data_file = path_fixer(test_data_file)
+    model_weights = path_fixer(model_weights)
     # Get predictor object
     predictor = get_predictor(yaml_url=yaml_url,
                               model_weights=model_weights,
                               test_data_file=test_data_file,
                               device=device,
+                              output_dir='temp',
                               threshold=threshold)
 
     # Get metadata
@@ -166,7 +170,12 @@ def infer(target_path: str or os.PathLike or np.ndarray,
     # Check if the input path is a directory
     if os.path.isdir(target_path):
         files = [file for file in os.listdir(target_path) if os.path.isfile(file)]
-        print(f'Performing inference on {len(files)} files')
+        os.makedirs(output_path)
+        predict_on_directory(directory=target_path,
+                             predictor=predictor,
+                             output_directory=output_path,
+                             metadata=metadata,
+                             scale=scale)
 
     # Check if the input path is a video file
     if os.path.isfile(target_path):
@@ -186,7 +195,7 @@ def infer(target_path: str or os.PathLike or np.ndarray,
 def predict_on_directory(directory: str or os.PathLike or np.ndarray,
                          predictor: DefaultPredictor,
                          output_directory: str or os.PathLike,
-                         metadata,
+                         metadata: MetadataCatalog,
                          scale: float = 1.):
     """
     Perform object detection on all image files in a directory and save the output to another directory.
@@ -201,7 +210,7 @@ def predict_on_directory(directory: str or os.PathLike or np.ndarray,
     Returns:
         None
     """
-    for file in os.listdir(directory):
+    for file in tqdm(os.listdir(directory)):
         image = plt.imread(os.path.join(directory, file))
         output = inference_step(predictor, image, metadata, scale)
         plt.imsave(os.path.join(output_directory, file), output)

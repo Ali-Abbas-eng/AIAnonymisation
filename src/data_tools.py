@@ -527,3 +527,27 @@ def generate_splits(directory: str or os.PathLike,
     json.dump(train_data, open(os.path.join(directory, dataset_name + '_train.json'), 'w'))
     json.dump(test_data, open(os.path.join(directory, dataset_name + '_test.json'), 'w'))
     json.dump(val_data, open(os.path.join(directory, dataset_name + '_val.json'), 'w'))
+
+
+def path_fixer(path: str) -> str:
+    """
+    Replaces forward slashes, backslashes and multiple slashes in a path with the appropriate separator for the operating system.
+
+    Args:
+    path (str): The path to be fixed.
+
+    Returns:
+    str: The fixed path with the correct OS-relative separators.
+    """
+
+    # Replace double and single forward slashes with a temporary separator symbol ('$')
+    path = path.replace('//', '$')
+    path = path.replace('/', '$')
+
+    # Replace backslashes with the temporary separator symbol ('$')
+    path = path.replace('\\', '$')
+
+    # Replace the temporary separator symbol ('$') with the correct separator for the operating system
+    path = path.replace('$', os.path.sep)
+
+    return path

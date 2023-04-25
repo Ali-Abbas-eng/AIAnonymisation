@@ -46,13 +46,6 @@ def main(compressed_files_directory: str or os.PathLike,
                                               create_record=create_record,
                                               pre_process=pre_processing_function)
 
-    wider_face.write_data(data_directory_train=WIDER_FACE_IMAGES_DIRECTORY_TRAIN,
-                          data_directory_valid=WIDER_FACE_IMAGES_DIRECTORY_VALID,
-                          annotation_file_train=WIDER_FACE_ANNOTATIONS_FILE_TRAIN,
-                          annotation_file_valid=WIDER_FACE_ANNOTATIONS_FILE_VALID,
-                          create_record=create_record,
-                          info_path=WIDER_FACE_INFORMATION_FILE,
-                          pre_process=pre_processing_function)
     generate_splits(directory=CCPD_IMAGES_DIRECTORY,
                     original_json=CCPD_INFORMATION_FILE,
                     num_examples=CCPD_NUM_CANDIDATES,
@@ -61,23 +54,12 @@ def main(compressed_files_directory: str or os.PathLike,
                     original_json=CELEB_A_INFORMATION_FILE,
                     num_examples=CELEB_A_NUM_CANDIDATES,
                     dataset_name='celeba')
-    generate_splits(directory=WIDER_FACE_IMAGES_DIRECTORY,
-                    original_json=WIDER_FACE_INFORMATION_FILE,
-                    num_examples=WIDER_FACE_NUM_CANDIDATES,
-                    dataset_name='wider_face')
-    train_files = [os.path.join(CCPD_IMAGES_DIRECTORY, 'ccpd_train.json'),
-                   os.path.join(CELEB_A_DATASET_DIRECTORY, 'celeba_train.json'),
-                   os.path.join(WIDER_FACE_IMAGES_DIRECTORY, 'wider_face_train.json')]
     test_files = [os.path.join(CCPD_IMAGES_DIRECTORY, 'ccpd_test.json'),
-                  os.path.join(CCPD_IMAGES_DIRECTORY, 'ccpd_val.json'),
-                  os.path.join(CELEB_A_DATASET_DIRECTORY, 'celeba_test.json'),
-                  os.path.join(CELEB_A_DATASET_DIRECTORY, 'celeba_val.json'),
-                  os.path.join(WIDER_FACE_IMAGES_DIRECTORY, 'wider_face_test.json'),
-                  os.path.join(WIDER_FACE_IMAGES_DIRECTORY, 'wider_face_val.json')]
-    if combine > 0:
-        merge(test_files, DATASET_INFO_FILE_TEST)
-    if combine > 1:
-        merge(train_files, DATASET_INFO_FILE_TRAIN)
+                  os.path.join(CELEB_A_DATASET_DIRECTORY, 'celeba_test.json')]
+    merge(test_files, DATASET_INFO_FILE_TEST)
+    test_files = [os.path.join(CCPD_IMAGES_DIRECTORY, 'ccpd_val.json'),
+                  os.path.join(CELEB_A_DATASET_DIRECTORY, 'celeba_val.json')]
+    merge(test_files, DATASET_INFO_FILE_VAL)
 
 
 if __name__ == '__main__':

@@ -4,7 +4,7 @@ from detectron2.structures import BoxMode
 import requests
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.utils.visualizer import Visualizer
-from tqdm.auto import tqdm
+from tqdm import tqdm
 import json
 import os
 import shutil
@@ -28,20 +28,20 @@ WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER_FACE', 'w
 WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face.json')
 
 CELEB_A_NUM_CANDIDATES = {
-    'train': 30000,
-    'test': 5000,
+    'train': 160_000,
+    'test': 10000,
     'val': 5000
 }
 
-WIDER_FACE_NUM_CANDIDATES = {
-    'train': 10_0,
-    'test': 1000,
-    'val': 1000
-}
+# WIDER_FACE_NUM_CANDIDATES = {
+#     'train': 10_0,
+#     'test': 1000,
+#     'val': 1000
+# }
 
 CCPD_NUM_CANDIDATES = {
-    'train': 30000,
-    'test': 5000,
+    'train': 160_000,
+    'test': 10000,
     'val': 5000
 }
 
@@ -54,7 +54,6 @@ DATASET_INFO_FILE_VAL = os.path.join(FINAL_DATA_PATH, 'val.json')
 
 CCPD_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CCPD2019')
 CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
-
 
 IMAGE_SIZE = (360, 580)
 
@@ -95,7 +94,7 @@ def plot_images(images):
     """
     if images.shape[0] > 4:
         # Create a grid of subplots with 4 columns
-        fig, axs = plt.subplots(nrows=images.shape[0] // 4, ncols=4, figsize=(25, 25))
+        fig, axs = plt.subplots(nrows=images.shape[0] // 4, ncols=4, figsize=(15, 10))
         for i in range(images.shape[0]):
             # Plot the current image in the appropriate subplot
             axs[i // 4, i % 4].imshow(images[i])
@@ -103,12 +102,13 @@ def plot_images(images):
         plt.show()
     else:
         # Create a grid of subplots with 1 column
-        fig, axs = plt.subplots(nrows=images.shape[0], ncols=1, figsize=(25, 25))
+        fig, axs = plt.subplots(nrows=images.shape[0], ncols=1, figsize=(15, 10))
         for i in range(images.shape[0]):
             # Plot the current image in the appropriate subplot
             axs[i].imshow(images[i])
             axs[i].axis('off')
         plt.show()
+    return fig
 
 
 def visualize_sample(info_file: str, n_samples: int = 8):
@@ -184,7 +184,7 @@ def adaptive_resize(image, bounding_boxes, new_size):
     # Update the bounding box coordinates
     new_bounding_boxes = []
     for i in range(0, len(bounding_boxes), 4):
-        bbox = bounding_boxes[i: i+4]
+        bbox = bounding_boxes[i: i + 4]
         x_min = int(bbox[0] * scale_x)
         y_min = int(bbox[1] * scale_y)
         x_max = int(bbox[2] * scale_x)
@@ -264,7 +264,7 @@ def download_files(urls: dict, directory: str = 'models'):
     # Loop through each URL and download the file
     for key, url in urls.items():
         # Get the filename from the URL
-        filename = os.path.join(directory, url.split('/')[-1])
+        filename = os.path.join(directory, key)
 
         # Download the file
         response = requests.get(url, stream=True)

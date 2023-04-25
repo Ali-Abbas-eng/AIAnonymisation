@@ -1,6 +1,5 @@
 import ccpd_2019
 import celeba
-import wider_face
 import argparse
 from data_tools import *
 
@@ -11,14 +10,11 @@ def download_and_extract(compressed_files_directory: str or os.PathLike,
                                    unzipped_directory=data_directory)
     celeba.download_and_extract(download_directory=os.path.join(compressed_files_directory, 'img_celeba.7z'),
                                 unzipped_directory=CELEB_A_IMAGES_DIRECTORY)
-    wider_face.download_and_extract(download_directory=os.path.join(compressed_files_directory, 'WIDER_FACE'),
-                                    unzipped_directory=os.path.join(data_directory, 'WIDER_FACE'))
 
 
 def main(compressed_files_directory: str or os.PathLike,
          data_directory: str or os.PathLike = os.path.join('../data', 'raw'),
          download: int = 0,
-         combine: int = 1,
          pre_process: int = 0):
     """
     Encapsulation of the data retrieval process (Downloads, extracts, and then generates the final dataset to be used.

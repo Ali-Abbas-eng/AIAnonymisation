@@ -85,21 +85,23 @@ def get_cfg(network_base_name: str,
             eval_freq: int = 5000,
             batch_size: int = 2,
             decay_gamma: float = 0.7,
-            output_directory: str = 'output'):
+            output_directory: str = 'output',
+            freeze_at: int = 0):
     """
     Generates a configuration object for a network.
 
-    Args:
-        network_base_name (str): The base name of the network.
-        yaml_url (str): The URL of the YAML configuration file.
-        train_datasets (tuple): A tuple of training datasets.
-        test_datasets (tuple): A tuple of testing datasets.
-        initial_learning_rate (float): The initial learning rate. Defaults to 0.00025.
-        train_steps (int): The number of training steps. Defaults to 5000.
-        eval_freq (int): The evaluation frequency. Defaults to 5000.
-        batch_size (int): The batch size. Defaults to 2.
-        decay_gamma: float, decay step for the learning rate scheduler
-        output_directory (str): The output directory. Defaults to 'output'.
+    :param network_base_name: str, The base name of the network.
+    :param yaml_url: str, The URL of the YAML configuration file.
+    :param train_datasets: tuple, A tuple of training datasets.
+    :param test_datasets: tuple, A tuple of testing datasets.
+    :param initial_learning_rate: float, The initial learning rate. Defaults to 0.00025.
+    :param train_steps: int, The number of training steps. Defaults to 5000.
+    :param eval_freq: int, The evaluation frequency. Defaults to 5000.
+    :param batch_size: int, The batch size. Defaults to 2.
+    :param decay_gamma: float, decay step for the learning rate scheduler
+    :param output_directory: str, The output directory. Defaults to 'output'.
+    :param freeze_at: int, index of the last layer to be frozen in the sequence of frozen layer (0 means freeze all but
+     the output layer, -1 means train all).
 
     Returns:
         cfg: A configuration object for the network.
@@ -150,5 +152,6 @@ def get_cfg(network_base_name: str,
     # set learning rate decay options
     cfg.SOLVER.GAMMA = decay_gamma
     cfg.SOLVER.STEPS = tuple([eval_freq * i for i in range(1, train_steps // eval_freq)])
+    cfg.MODEL.BACKBONE.FREEZE_AT = freeze_at
 
     return cfg

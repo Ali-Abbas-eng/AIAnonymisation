@@ -14,7 +14,8 @@ def train(yaml_url: str,
           batch_size: int,
           output_directory: str,
           decay_gamma: float,
-          eval_device: str):
+          eval_device: str,
+          freeze_at: int):
     """
     Trains a model using the specified configurations.
     :param yaml_url: The URL to the YAML configuration file.
@@ -27,6 +28,8 @@ def train(yaml_url: str,
     :param output_directory: str, the directory to which training results will be saved
     :param decay_gamma: float, decay step for the learning rate scheduler
     :param eval_device: str, the device on which evaluation of the model will be done, default 'cuda' (recommended).
+    :param freeze_at: int, index of the last layer to be frozen in the sequence of frozen layer (0 means freeze all but the
+    output layer, -1 means train all).
     """
     # register the datasets
     train_datasets = [file.split('/')[-1].replace('.json', '') for file in train_files]
@@ -45,7 +48,8 @@ def train(yaml_url: str,
                              train_steps=train_steps,
                              eval_freq=eval_steps,
                              batch_size=batch_size,
-                             output_directory=output_directory)
+                             output_directory=output_directory,
+                             freeze_at=freeze_at)
     # Create trainer object with configurations
     trainer = Trainer(configurations)
 
@@ -71,10 +75,11 @@ if __name__ == '__main__':
     parser.add_argument('--decay_gamma', type=float, default=0.1)
     parser.add_argument('--output_directory', type=str, default='output')
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
-    parser.add_argument('--train_steps', type=int, default=320_000)
+    parser.add_argument('--train_steps', type=int, default=80_000)
     parser.add_argument('--eval_steps', type=int, default=50_000)
-    parser.add_argument('--batch_size', type=int, default=4)
+    parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--eval_device', type=str, default='cuda')
+    parser.add_argument('--freeze_at', type=int, default=0)
 
     args = vars(parser.parse_args())
 

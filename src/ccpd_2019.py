@@ -82,7 +82,7 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
     progress_bar_bars = sum(len(files) for _, __, files in os.walk(data_directory))
 
     # Create a progress bar
-    with tqdm(total=progress_bar_bars) as progress_bar:
+    with tqdm(total=progress_bar_bars, desc='Generating Data From CCPD2019') as progress_bar:
         # Traverse through the data directory
         for root, _, files in os.walk(data_directory):
             # Traverse through the files in the directory

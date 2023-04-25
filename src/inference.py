@@ -1,3 +1,4 @@
+import shutil
 import warnings
 import torch
 from detectron2.data import DatasetCatalog, MetadataCatalog
@@ -160,8 +161,10 @@ def infer(target_path: str or os.PathLike or np.ndarray,
                               output_dir='temp',
                               threshold=threshold)
 
+    shutil.rmtree('temp')
     # Get metadata
     metadata = MetadataCatalog.get("test")
+    metadata.set(thing_classes=['FACE', 'Lic. Plate'])
 
     # Check if the input path exists
     if not os.path.exists(target_path):
@@ -186,7 +189,7 @@ def infer(target_path: str or os.PathLike or np.ndarray,
                              metadata=metadata,
                              predictor=predictor)
         # Check if the input path is an image file
-        if target_path[-4:] in ['png', 'jpg']:
+        if target_path[-4:] in ['png', 'jpg', 'jpeg']:
             image = plt.imread(target_path)
             output = inference_step(predictor, image, metadata, scale)
             plt.imsave(output_path, output)

@@ -5,16 +5,57 @@ from detectron2.engine.defaults import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
 from detectron2.config import get_cfg as base_configurations
 from detectron2.model_zoo import get_config_file, get_checkpoint_url
+from detectron2.engine import hooks
 from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
 
 
+class EarlyStoppingHook(hooks.HookBase):
+    def __init__(self, patience=10):
+        self.patience = patience
+        self.counter = 0
+        self.best_score = None
+
+    def after_step(self):
+        if self.trainer.iter == 0:
+            return
+        if self.best_score is None:
+            self.best_score = self.trainer.storage.history("total_loss").latest()
+        else:
+            current_score = self.trainer.storage.history("total_loss").latest()
+            if current_score > self.best_score:
+                self.counter += 1
+                if self.counter >= self.patience:
+                    raise Exception('early stopping')
+            else:
+                self.best_score = current_score
+                self.counter = 0
+
+
 class Trainer(DefaultTrainer):
+    """
+    A custom trainer class that inherits the DefaultTrainer class from Detectron2.
+    """
+
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder: str = None):
+        """
+        A class method that builds a COCOEvaluator object for evaluation.
+
+        Parameters:
+            cfg (CfgNode): A configuration object.
+            dataset_name (str): The name of the dataset to be evaluated.
+            output_folder (str): The directory to save evaluation results. If None, it is saved in cfg.OUTPUT_DIR/eval.
+
+        Returns:
+            evaluator (COCOEvaluator): A COCOEvaluator object for evaluation.
+        """
+
+        # If output folder is not provided, create a new one in cfg.OUTPUT_DIR/eval
         if output_folder is None:
             output_folder = os.path.join(cfg.OUTPUT_DIR, 'eval')
         os.makedirs(output_folder, exist_ok=True)
 
+        # Create a COCOEvaluator object for evaluation
         evaluator = COCOEvaluator(dataset_name, cfg, False, output_folder)
 
         return evaluator

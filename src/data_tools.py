@@ -151,7 +151,7 @@ def visualize_sample(info_file: str, n_samples: int = 8):
         v = v.draw_dataset_dict(record)
 
         # Add the image to the list
-        images.append(v.get_image()[:, :, ::-1])
+        images.append(cv2.resize(v.get_image()[:, :, ::-1], (256, 256)))
 
     # Display annotated image using matplotlib imshow function
     plot_images(np.array(images))

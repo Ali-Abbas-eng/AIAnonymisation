@@ -155,15 +155,16 @@ def predict_on_directory(directory: str or os.PathLike or list,
     # If the directory argument is a string, convert it to a list of file paths
     if type(directory) == str:
         directory = [os.path.join(directory, file) for file in os.listdir(directory)]
-    base_dir = directory[0][:directory[0].index(os.path.basename(directory[0]))]
-    # Iterate over each file in the directory and perform object detection on each image
-    for file in tqdm(directory, desc=f'Performing Inference on Images at {base_dir}'):
-        # Read in the image using matplotlib
-        image = plt.imread(file)
-        # Perform object detection on the image using the predictor and metadata
-        output = inference_step(predictor, image, metadata, scale)
-        # Save the output image to the output directory with the same filename as the input file
-        plt.imsave(os.path.join(output_directory, os.path.basename(file)), output)
+    if len(directory) > 0:
+        base_dir = directory[0][:directory[0].index(os.path.basename(directory[0]))]
+        # Iterate over each file in the directory and perform object detection on each image
+        for file in tqdm(directory, desc=f'Performing Inference on Images at {base_dir}'):
+            # Read in the image using matplotlib
+            image = plt.imread(file)
+            # Perform object detection on the image using the predictor and metadata
+            output = inference_step(predictor, image, metadata, scale)
+            # Save the output image to the output directory with the same filename as the input file
+            plt.imsave(os.path.join(output_directory, os.path.basename(file)), output)
 
 
 def inference_step(predictor, image, metadata, scale):

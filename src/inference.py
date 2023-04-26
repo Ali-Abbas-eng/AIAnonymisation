@@ -90,7 +90,8 @@ def predict_on_video(video_object: str or os.PathLike,
     Applies object detection on a video and saves the resulting video to the specified output path.
 
     Args:
-        video_object (str or os.PathLike or np.ndarray): The path to the input video file or a numpy array containing the frames.
+        video_object (str or os.PathLike or np.ndarray): The path to the input video file or a numpy array containing
+        the frames.
         predictor (DefaultPredictor): The object detection model to use.
         output_path (str or os.PathLike): The path to save the resulting video file.
         metadata (MetadataCatalog): Metadata about the input data.
@@ -240,7 +241,9 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
     contents = os.listdir(target_path)
     images = [os.path.join(target_path, file) for file in contents if supported(file, file_type='image')]
     videos = [os.path.join(target_path, file) for file in contents if supported(file, file_type='video')]
-    directories = [os.path.join(target_path, file) for file in contents if os.path.isdir(os.path.join(target_path, file))]
+    directories = [os.path.join(target_path, file)
+                   for file in contents
+                   if os.path.isdir(os.path.join(target_path, file))]
 
     # Get the predictor object
     if not type(network) == DefaultPredictor:
@@ -250,14 +253,14 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
                                   device=device,
                                   output_dir=cache_dir,
                                   threshold=threshold)
+        # Remove the cache directory if it exists
+        shutil.rmtree(cache_dir)
+
     else:
         predictor = network
 
     # Get the metadata for the input images
     metadata = MetadataCatalog.get('test_data')
-
-    # Remove the cache directory if it exists
-    shutil.rmtree(cache_dir)
 
     # Process the images
     predict_on_directory(images, output_path, predictor, metadata, scale)
@@ -267,7 +270,7 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
      for file in videos]
 
     # Process the subdirectories recursively
-    [inference_manager(network,
+    [inference_manager(predictor,
                        os.path.join(subdir),
                        os.path.join(output_path, subdir.split(os.path.sep)[-1]),
                        model_weights,

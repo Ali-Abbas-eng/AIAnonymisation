@@ -82,13 +82,13 @@ def pre_process_data(image_path: str, bounding_boxes: list) -> list:
     return bounding_boxes
 
 
-def plot_images(images):
+def plot_images(images, show: bool):
     """
     Plots the input images using matplotlib.
 
     Args:
         images (numpy.ndarray): A 4D numpy array containing the images to plot.
-
+        show (bool): whether to show the plot or not.
     Returns:
         None
     """
@@ -99,7 +99,6 @@ def plot_images(images):
             # Plot the current image in the appropriate subplot
             axs[i // 4, i % 4].imshow(images[i])
             axs[i // 4, i % 4].axis('off')
-        plt.show()
     else:
         # Create a grid of subplots with 1 column
         fig, axs = plt.subplots(nrows=images.shape[0], ncols=1, figsize=(15, 10))
@@ -107,11 +106,12 @@ def plot_images(images):
             # Plot the current image in the appropriate subplot
             axs[i].imshow(images[i])
             axs[i].axis('off')
+    if show:
         plt.show()
     return fig
 
 
-def visualize_sample(info_file: str, n_samples: int = 8):
+def visualize_sample(info_file: str, n_samples: int = 8, show=True, save_path: str = None):
     """
     Visualize a sample from a custom dataset for detectron2.
 
@@ -122,6 +122,8 @@ def visualize_sample(info_file: str, n_samples: int = 8):
     Args:
         info_file (str): The name (path) of the file containing the dataset information to draw from.
         n_samples (int): The number of images to draw and view.
+        show (bool): whether to show the images plot or not
+        save_path (str): path to a non-existent png file to which the plot will be saved, None equals don't save
     """
     # retrieve the registered dataset
     dataset_dicts = json.load(open(info_file))
@@ -153,8 +155,11 @@ def visualize_sample(info_file: str, n_samples: int = 8):
         # Add the image to the list
         images.append(cv2.resize(v.get_image()[:, :, ::-1], (256, 256)))
 
-    # Display annotated image using matplotlib imshow function
-    plot_images(np.array(images))
+    # Get annotated images using matplotlib imshow function
+    fig = plot_images(np.array(images), show=show)
+    # Save the plot to the specified path
+    if save_path is not None:
+        fig.savefig(save_path)
 
 
 def adaptive_resize(image, bounding_boxes, new_size):

@@ -18,18 +18,22 @@ try:
 except ModuleNotFoundError:
     from src.training_utils import get_cfg
 setup_logger()
+supported_formats = {
+    'image': ['png', 'jpg', 'jpeg'],
+    'video': ['avi', 'mp4', 'mov']
+}
 
 
-def get_predictor(yaml_url: str or os.PathLike,
-                  model_weights: str or os.PathLike,
-                  test_data_file: str or os.PathLike,
-                  device: str,
-                  output_dir: str,
-                  threshold: float) -> DefaultPredictor:
+def get_predictor(network: str or os.PathLike,
+                  model_weights: str or os.PathLike = None,
+                  test_data_file: str or os.PathLike = os.path.join('data', 'test.json'),
+                  device: str = 'cuda',
+                  output_dir: str = 'temp',
+                  threshold: float = 0.7) -> DefaultPredictor:
     """Returns a DefaultPredictor object for the given model.
 
     Args:
-        yaml_url (str or os.PathLike): The URL or path of the YAML configuration file for the model.
+        network (str or os.PathLike): The URL or path of the YAML configuration file for the model.
         model_weights (str or os.PathLike): The path to the model weights file.
         test_data_file (str or os.PathLike): The path to the file containing the test data.
         output_dir (str or os.PathLike): The path to the output directory.
@@ -49,6 +53,8 @@ def get_predictor(yaml_url: str or os.PathLike,
     # Set the device for the model
     device = torch.device(device)
 
+    if model_weights is None:
+        model_weights = os.path.join('output', network, 'model_final.pth')
     # Load the test data and register it with Detectron2
     test_data = json.load(open(test_data_file, 'r'))
     test_dataset_name = "test_data"
@@ -58,11 +64,11 @@ def get_predictor(yaml_url: str or os.PathLike,
         print('Data is already registered')
 
     # Set the metadata for the test dataset
-    MetadataCatalog.get(test_dataset_name).set(thing_classes=["FACE", "LP"])
+    MetadataCatalog.get(test_dataset_name).set(thing_classes=["FACE", "Car Plate"])
 
     # Set the configuration for the model
-    cfg = get_cfg(network_base_name=yaml_url.replace('COCO-Detection/', '').replace('.yaml', ''),
-                  yaml_url=yaml_url,
+    cfg = get_cfg(network_base_name=network,
+                  yaml_url=f'COCO-Detection/{network}.yaml',
                   train_datasets=(),
                   test_datasets=(),
                   output_directory=output_dir)
@@ -75,9 +81,9 @@ def get_predictor(yaml_url: str or os.PathLike,
     return predictor
 
 
-def predict_on_video(video_object: str or os.PathLike or np.ndarray,
-                     predictor: DefaultPredictor,
+def predict_on_video(video_object: str or os.PathLike,
                      output_path: str or os.PathLike,
+                     predictor: DefaultPredictor,
                      metadata: MetadataCatalog,
                      scale: float = 1.):
     """
@@ -110,7 +116,7 @@ def predict_on_video(video_object: str or os.PathLike or np.ndarray,
     # noinspection PyUnresolvedReferences
     video_writer = cv2.VideoWriter(output_path, fourcc, 30.0, (frame_width, frame_height))
 
-    for _ in tqdm(range(frame_count), desc='Inference'):
+    for _ in tqdm(range(frame_count), desc=f'Inference on Video {video_object}'):
         # Read the current frame from the input video
         _, im = cap.read()
         im = im[:, :, ::-1]
@@ -128,95 +134,36 @@ def predict_on_video(video_object: str or os.PathLike or np.ndarray,
     del predictor
 
 
-def infer(target_path: str or os.PathLike or np.ndarray,
-          output_path: str or os.PathLike,
-          yaml_url: str or os.PathLike,
-          model_weights: str or os.PathLike,
-          test_data_file: str or os.PathLike,
-          device: str,
-          scale: float = 1.,
-          threshold: float = .7):
-    """
-    Infers object detection from given input path and saves the output to output_path.
-
-    Args:
-    path (str or os.PathLike or np.ndarray): The input file path or array of images
-    output_path (str or os.PathLike): The output file path.
-    yaml_url (str or os.PathLike): The url or path to the yaml file.
-    model_weights (str or os.PathLike): The path to the model weights file.
-    test_data_file (str or os.PathLike): The path to the test data file.
-    device (str): The device to run the inference on.
-    scale (float, optional): The scale factor for the image size. Default is 1.
-    threshold (float, optional): The detection threshold. Default is 0.7.
-    """
-    target_path = path_fixer(target_path)
-    output_path = path_fixer(output_path)
-    test_data_file = path_fixer(test_data_file)
-    model_weights = path_fixer(model_weights)
-    # Get predictor object
-    predictor = get_predictor(yaml_url=yaml_url,
-                              model_weights=model_weights,
-                              test_data_file=test_data_file,
-                              device=device,
-                              output_dir='temp',
-                              threshold=threshold)
-
-    shutil.rmtree('temp')
-    # Get metadata
-    metadata = MetadataCatalog.get("test")
-    metadata.set(thing_classes=['FACE', 'Lic. Plate'])
-
-    # Check if the input path exists
-    if not os.path.exists(target_path):
-        raise FileNotFoundError(f'No such file or directory: {target_path}')
-
-    # Check if the input path is a directory
-    if os.path.isdir(target_path):
-        files = [file for file in os.listdir(target_path) if os.path.isfile(file)]
-        os.makedirs(output_path)
-        predict_on_directory(directory=target_path,
-                             predictor=predictor,
-                             output_directory=output_path,
-                             metadata=metadata,
-                             scale=scale)
-
-    # Check if the input path is a video file
-    if os.path.isfile(target_path):
-        extension = target_path[-3:]
-        if extension in ['mov', 'mp4', 'avi']:
-            predict_on_video(video_object=target_path,
-                             output_path=output_path,
-                             metadata=metadata,
-                             predictor=predictor)
-        # Check if the input path is an image file
-        if target_path[-4:] in ['png', 'jpg', 'jpeg']:
-            image = plt.imread(target_path)
-            output = inference_step(predictor, image, metadata, scale)
-            plt.imsave(output_path, output)
-
-
-def predict_on_directory(directory: str or os.PathLike or np.ndarray,
-                         predictor: DefaultPredictor,
+def predict_on_directory(directory: str or os.PathLike or list,
                          output_directory: str or os.PathLike,
+                         predictor: DefaultPredictor,
                          metadata: MetadataCatalog,
                          scale: float = 1.):
     """
     Perform object detection on all image files in a directory and save the output to another directory.
 
     Args:
-        directory (str or os.PathLike): The directory containing the input image files.
-        predictor (DefaultPredictor): The object detection model predictor.
+        directory (str or os.PathLike or list): The directory or list of directories containing the input image files.
         output_directory (str or os.PathLike): The directory to save the output images.
-        metadata: The metadata for the input images.
+        predictor (DefaultPredictor): The object detection model predictor.
+        metadata (MetadataCatalog): The metadata for the input images.
         scale (float): The scale factor for the images.
 
     Returns:
         None
     """
-    for file in tqdm(os.listdir(directory)):
-        image = plt.imread(os.path.join(directory, file))
+    # If the directory argument is a string, convert it to a list of file paths
+    if type(directory) == str:
+        directory = [os.path.join(directory, file) for file in os.listdir(directory)]
+    base_dir = directory[0][:directory[0].index(os.path.basename(directory[0]))]
+    # Iterate over each file in the directory and perform object detection on each image
+    for file in tqdm(directory, desc=f'Performing Inference on Images at {base_dir}'):
+        # Read in the image using matplotlib
+        image = plt.imread(file)
+        # Perform object detection on the image using the predictor and metadata
         output = inference_step(predictor, image, metadata, scale)
-        plt.imsave(os.path.join(output_directory, file), output)
+        # Save the output image to the output directory with the same filename as the input file
+        plt.imsave(os.path.join(output_directory, os.path.basename(file)), output)
 
 
 def inference_step(predictor, image, metadata, scale):
@@ -244,13 +191,100 @@ def inference_step(predictor, image, metadata, scale):
     return out
 
 
+def supported(file, file_type):
+    for extension in supported_formats[file_type]:
+        if file.endswith(extension):
+            return True
+    return False
+
+
+def inference_manager(network: str or os.PathLike or DefaultPredictor,
+                      target_path: str or os.PathLike,
+                      output_path: str or os.PathLike,
+                      model_weights: str or os.PathLike = None,
+                      test_data_file: str or os.PathLike = os.path.join('data', 'test.json'),
+                      device: str = 'cuda',
+                      cache_dir: str = 'temp',
+                      threshold: float = 0.7,
+                      scale: float = 1.0):
+    """
+    Perform object detection on a directory of images and videos, and save the results in another directory.
+    Recursively traverses subdirectories as well.
+
+    Args:
+        network (str or os.PathLike or DefaultPredictor): The path to the model file or the predictor object.
+        target_path (str or os.PathLike): The path to the directory containing the input files.
+        output_path (str or os.PathLike): The path to the directory to save the output files.
+        model_weights (str or os.PathLike, optional): The path to the model weights file. Defaults to None.
+        test_data_file (str or os.PathLike, optional): The path to the test data file. Defaults to 'data/test.json'.
+        device (str, optional): The device to run the inference on. Defaults to 'cuda'.
+        cache_dir (str, optional): The directory to store intermediate files. Defaults to 'temp'.
+        threshold (float, optional): The confidence threshold for object detection. Defaults to 0.7.
+        scale (float, optional): The scale factor for the input images. Defaults to 1.0.
+
+    Returns:
+        None
+    """
+    # Fix the paths to make them consistent
+    target_path = path_fixer(target_path)
+    output_path = path_fixer(output_path)
+    test_data_file = path_fixer(test_data_file)
+    if model_weights:
+        model_weights = path_fixer(model_weights)
+
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_path, exist_ok=True)
+
+    # Get the list of files and directories to process
+    contents = os.listdir(target_path)
+    images = [os.path.join(target_path, file) for file in contents if supported(file, file_type='image')]
+    videos = [os.path.join(target_path, file) for file in contents if supported(file, file_type='video')]
+    directories = [os.path.join(target_path, file) for file in contents if os.path.isdir(os.path.join(target_path, file))]
+
+    # Get the predictor object
+    if not type(network) == DefaultPredictor:
+        predictor = get_predictor(network=network,
+                                  model_weights=model_weights,
+                                  test_data_file=test_data_file,
+                                  device=device,
+                                  output_dir=cache_dir,
+                                  threshold=threshold)
+    else:
+        predictor = network
+
+    # Get the metadata for the input images
+    metadata = MetadataCatalog.get('test_data')
+
+    # Remove the cache directory if it exists
+    shutil.rmtree(cache_dir)
+
+    # Process the images
+    predict_on_directory(images, output_path, predictor, metadata, scale)
+
+    # Process the videos
+    [predict_on_video(file, os.path.join(output_path, os.path.basename(file)), predictor, metadata, scale)
+     for file in videos]
+
+    # Process the subdirectories recursively
+    [inference_manager(network,
+                       os.path.join(subdir),
+                       os.path.join(output_path, subdir.split(os.path.sep)[-1]),
+                       model_weights,
+                       test_data_file,
+                       device,
+                       cache_dir,
+                       threshold,
+                       scale)
+     for subdir in directories]
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--target_path', type=str, required=True)
     parser.add_argument('--output_path', type=str, required=True)
-    parser.add_argument('--yaml_url', type=str, required=True)
-    parser.add_argument('--model_weights', type=str, required=True)
-    parser.add_argument('--threshold', type=float, required=True)
+    parser.add_argument('--network', type=str, required=True)
+    parser.add_argument('--model_weights', type=str, default=None)
+    parser.add_argument('--threshold', type=float, default=.7)
     parser.add_argument('--test_data_file', type=str, default=os.path.join('data', 'test.json'))
     parser.add_argument('--device', type=str, default='cuda')
     parser.add_argument('--scale', type=float, default=1.)
@@ -258,4 +292,4 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
-        infer(**args)
+        inference_manager(**args)

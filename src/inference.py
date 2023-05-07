@@ -1,11 +1,12 @@
 import shutil
 import warnings
+from typing import Tuple, Any
 import torch
 from detectron2.data import DatasetCatalog, MetadataCatalog
-from detectron2.engine import DefaultPredictor
 import os
 import json
 from detectron2.utils.logger import setup_logger
+from src.detectron2.engine import DefaultPredictor
 from tqdm import tqdm
 import numpy as np
 import cv2
@@ -29,10 +30,12 @@ def get_predictor(network: str or os.PathLike,
                   test_data_file: str or os.PathLike = os.path.join('data', 'test.json'),
                   device: str = 'cuda',
                   output_dir: str = 'temp',
-                  threshold: float = 0.7) -> DefaultPredictor:
+                  threshold: float = 0.7,
+                  return_cfg: bool = False) -> Tuple[DefaultPredictor, Any] or DefaultPredictor:
     """Returns a DefaultPredictor object for the given model.
 
     Args:
+        return_cfg (bool): whither or not to return the configuration's node.
         network (str or os.PathLike): The URL or path of the YAML configuration file for the model.
         model_weights (str or os.PathLike): The path to the model weights file.
         test_data_file (str or os.PathLike): The path to the file containing the test data.
@@ -77,7 +80,8 @@ def get_predictor(network: str or os.PathLike,
     cfg.MODEL.DEVICE = str(device)
     # Create a DefaultPredictor object with the given configuration and return it
     predictor = DefaultPredictor(cfg)
-
+    if return_cfg:
+        return predictor, cfg
     return predictor
 
 
@@ -90,8 +94,7 @@ def predict_on_video(video_object: str or os.PathLike,
     Applies object detection on a video and saves the resulting video to the specified output path.
 
     Args:
-        video_object (str or os.PathLike or np.ndarray): The path to the input video file or a numpy array containing
-        the frames.
+        video_object (str or os.PathLike or np.ndarray): The path to the input video file or a numpy array containing the frames.
         predictor (DefaultPredictor): The object detection model to use.
         output_path (str or os.PathLike): The path to save the resulting video file.
         metadata (MetadataCatalog): Metadata about the input data.

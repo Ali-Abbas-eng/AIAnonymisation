@@ -9,28 +9,6 @@ from detectron2.engine import hooks
 from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
 
 
-class EarlyStoppingHook(hooks.HookBase):
-    def __init__(self, patience=10):
-        self.patience = patience
-        self.counter = 0
-        self.best_score = None
-
-    def after_step(self):
-        if self.trainer.iter == 0:
-            return
-        if self.best_score is None:
-            self.best_score = self.trainer.storage.history("total_loss").latest()
-        else:
-            current_score = self.trainer.storage.history("total_loss").latest()
-            if current_score > self.best_score:
-                self.counter += 1
-                if self.counter >= self.patience:
-                    raise Exception('early stopping')
-            else:
-                self.best_score = current_score
-                self.counter = 0
-
-
 class Trainer(DefaultTrainer):
     """
     A custom trainer class that inherits the DefaultTrainer class from Detectron2.
@@ -80,13 +58,15 @@ def get_cfg(network_base_name: str,
             yaml_url: str,
             train_datasets: tuple,
             test_datasets: tuple,
-            initial_learning_rate: float = 0.00025,
-            train_steps: int = 5000,
-            eval_freq: int = 5000,
+            output_directory: str,
+            min_learning_rate: float = 1e-7,
+            initial_learning_rate: float = 1e-5,
+            train_steps: int = 100_000,
+            eval_freq: int = 20_000,
             batch_size: int = 2,
-            decay_gamma: float = 0.7,
-            output_directory: str = 'output',
-            freeze_at: int = 0):
+            decay_freq: int = 1000,
+            decay_gamma: float = .9,
+            freeze_at: int = 50):
     """
     Generates a configuration object for a network.
 
@@ -98,6 +78,7 @@ def get_cfg(network_base_name: str,
     :param train_steps: int, The number of training steps. Defaults to 5000.
     :param eval_freq: int, The evaluation frequency. Defaults to 5000.
     :param batch_size: int, The batch size. Defaults to 2.
+    :param output_directory: str, the directory to which training results will be saved.
     :param decay_gamma: float, decay step for the learning rate scheduler
     :param output_directory: str, The output directory. Defaults to 'output'.
     :param freeze_at: int, index of the last layer to be frozen in the sequence of frozen layer (0 means freeze all but
@@ -139,6 +120,8 @@ def get_cfg(network_base_name: str,
 
     # Set the initial learning rate
     cfg.SOLVER.BASE_LR = initial_learning_rate
+#     cfg.SOLVER.OPTIMIZER = {'lr': initial_learning_rate}
+#     cfg.SOLVER.OVERRIDES = {'base_lr': initial_learning_rate}
 
     # Set the number of classes
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
@@ -151,7 +134,12 @@ def get_cfg(network_base_name: str,
 
     # set learning rate decay options
     cfg.SOLVER.GAMMA = decay_gamma
-    cfg.SOLVER.STEPS = tuple([eval_freq * i for i in range(1, train_steps // eval_freq)])
-    cfg.MODEL.BACKBONE.FREEZE_AT = freeze_at
+    
+    decay_steps = train_steps // decay_freq
+    solver_steps = []
+    for i in range(decay_steps):
+        if initial_learning_rate * decay_gamma ** i > min_learning_rate:
+            solver_steps.append(decay_freq * (i + 1))
 
+    cfg.SOLVER.STEPS = tuple(solver_steps)
     return cfg

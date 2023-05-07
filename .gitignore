@@ -9,3 +9,5 @@ custom_trainer.py
 /output/
 /tests/
 /output_trial_003/
+/src/detectron2/
+/detectron2/

@@ -3,7 +3,6 @@ import os
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 from detectron2.utils.logger import setup_logger
-
 try:
     from training_utils import get_cfg
     from inference import get_predictor
@@ -22,7 +21,7 @@ def evaluate(network: str or os.PathLike,
     Evaluates a trained object detection model on a test dataset.
 
     Args:
-        network (str): the base name of the network to be used for evaluation
+        yaml_url (str or os.PathLike): The URL or path to the YAML file containing the model configuration.
         model_weights (str or os.PathLike): The path to the file containing the trained model weights.
         test_data_file (str or os.PathLike): The path to the JSON file containing the test data in COCO format.
         output_dir (str or os.PathLike): The path to the directory where the output will be saved.
@@ -30,11 +29,11 @@ def evaluate(network: str or os.PathLike,
     """
     # Get predictor object
     predictor, cfg = get_predictor(network=network,
-                                   model_weights=model_weights,
-                                   test_data_file=test_data_file,
-                                   output_dir=output_dir,
-                                   device=device,
-                                   return_cfg=True)
+                              model_weights=model_weights,
+                              test_data_file=test_data_file,
+                              output_dir=output_dir,
+                              device=device,
+                                  return_cfg=True)
 
     # Evaluate model on test dataset
     evaluator = COCOEvaluator('test_data', output_dir=output_dir)

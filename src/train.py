@@ -81,10 +81,10 @@ if __name__ == '__main__':
     parser.add_argument('--network_base_name', type=str, required=True)
     parser.add_argument('--train_files', nargs='+', default=['data/raw/CelebA/celeba_train_001.json',
                                                              'data/raw/CCPD2019/ccpd_train_001.json'])
-    parser.add_argument('--valid_files', nargs='+', default=['data/val.json'])
+    parser.add_argument('--valid_files', nargs='+', default=['data/val_001.json'])
     parser.add_argument('--decay_freq', type=int, default=10_000)
     parser.add_argument('--decay_gamma', type=float, default=0.5)
-    parser.add_argument('--output_directory', type=str, default='output_trial_003')
+    parser.add_argument('--output_directory', type=str, default='output_trial_005')
     parser.add_argument('--initial_learning_rate', type=float, default=0.00025)
     parser.add_argument('--train_steps', type=int, default=50_000)
     parser.add_argument('--eval_steps', type=int, default=10_000)

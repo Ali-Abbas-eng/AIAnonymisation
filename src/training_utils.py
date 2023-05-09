@@ -140,6 +140,6 @@ def get_cfg(network_base_name: str,
     for i in range(decay_steps):
         if initial_learning_rate * decay_gamma ** i > min_learning_rate:
             solver_steps.append(decay_freq * (i + 1))
-
+    
     cfg.SOLVER.STEPS = tuple(solver_steps)
     return cfg

@@ -1,12 +1,11 @@
 import shutil
 import warnings
-from typing import Tuple, Any
 import torch
 from detectron2.data import DatasetCatalog, MetadataCatalog
+from detectron2.engine import DefaultPredictor
 import os
 import json
 from detectron2.utils.logger import setup_logger
-from src.detectron2.engine import DefaultPredictor
 from tqdm import tqdm
 import numpy as np
 import cv2
@@ -31,11 +30,10 @@ def get_predictor(network: str or os.PathLike,
                   device: str = 'cuda',
                   output_dir: str = 'temp',
                   threshold: float = 0.7,
-                  return_cfg: bool = False) -> Tuple[DefaultPredictor, Any] or DefaultPredictor:
+                  return_cfg: bool = False) -> DefaultPredictor:
     """Returns a DefaultPredictor object for the given model.
 
     Args:
-        return_cfg (bool): whither or not to return the configuration's node.
         network (str or os.PathLike): The URL or path of the YAML configuration file for the model.
         model_weights (str or os.PathLike): The path to the model weights file.
         test_data_file (str or os.PathLike): The path to the file containing the test data.
@@ -244,9 +242,7 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
     contents = os.listdir(target_path)
     images = [os.path.join(target_path, file) for file in contents if supported(file, file_type='image')]
     videos = [os.path.join(target_path, file) for file in contents if supported(file, file_type='video')]
-    directories = [os.path.join(target_path, file)
-                   for file in contents
-                   if os.path.isdir(os.path.join(target_path, file))]
+    directories = [os.path.join(target_path, file) for file in contents if os.path.isdir(os.path.join(target_path, file))]
 
     # Get the predictor object
     if not type(network) == DefaultPredictor:
@@ -258,7 +254,6 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
                                   threshold=threshold)
         # Remove the cache directory if it exists
         shutil.rmtree(cache_dir)
-
     else:
         predictor = network
 

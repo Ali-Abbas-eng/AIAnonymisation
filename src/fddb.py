@@ -117,14 +117,14 @@ def extract_file_info(data_directory,
 
 def generate_dataset_registration_info(data_directory: str or os.PathLike,
                                        info_path: str or os.PathLike,
-                                       create_record: Callable):
+                                       create_rec: Callable):
     """
     Generates dataset registration information and saves it as a JSON file.
 
     Args:
         data_directory (str or os.PathLike): Directory path of the dataset.
         info_path (str or os.PathLike): Path to save the generated registration information as a JSON file.
-        create_record (Callable): A function that creates a record based on given parameters.
+        create_rec (Callable): A function that creates a record based on given parameters.
     """
     # Calculate the total progress based on the number of files to process
     total_progress = sum([len(open(os.path.join(data_directory, 'FDDB-folds', file)).read().split('\n'))
@@ -139,7 +139,7 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
                 # Extract file information and create records using the extract_file_info function
                 records = extract_file_info(data_directory,
                                             os.path.join(data_directory, 'FDDB-folds', file),
-                                            create_record,
+                                            create_rec,
                                             progress_bar)
                 total_records.extend(records)
 
@@ -151,5 +151,4 @@ if __name__ == '__main__':
     download_and_extract()
     generate_dataset_registration_info(os.path.join('data', 'FDDB'),
                                        info_path=os.path.join('data', 'FDDB', 'FDDB.json'),
-                                       create_record=create_record)
-
+                                       create_rec=create_record)

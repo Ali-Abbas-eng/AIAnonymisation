@@ -35,7 +35,7 @@ def download_and_extract(urls=None, zipped_directory: str or os.PathLike = os.pa
     for file in os.listdir(zipped_directory):
         tar_file = tarfile.open(os.path.join(zipped_directory, file))
         members = tar_file.getmembers()
-        for member in tqdm.tqdm(members, total=len(members), desc=f'Extracting {file}'):
+        for member in tqdm(members, total=len(members), desc=f'Extracting {file}'):
             tar_file.extract(member, path=unzipped_directory)
 
 

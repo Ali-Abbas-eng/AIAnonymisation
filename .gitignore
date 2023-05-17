@@ -3,7 +3,7 @@
 custom_trainer.py
 /output/
 /.idea/
-/__pycache__/
+*/__pycache__/
 /Untitled.ipynb
 /models/
 /output/

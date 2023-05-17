@@ -1,3 +1,4 @@
+import argparse
 import json
 from data_tools import download_files, path_fixer, create_record
 import os
@@ -6,7 +7,8 @@ from tqdm import tqdm
 from typing import Callable
 
 
-def download_and_extract(urls=None, zipped_directory: str or os.PathLike = os.path.join('data', 'zipped', 'FDDB'),
+def download_and_extract(urls=None,
+                         zipped_directory: str or os.PathLike = os.path.join('data', 'zipped', 'FDDB'),
                          unzipped_directory: str or os.PathLike = os.path.join('data', 'raw', 'FDDB')):
     """
     Downloads and extracts files from the specified URLs to the given directories.
@@ -116,15 +118,13 @@ def extract_file_info(data_directory,
 
 
 def generate_dataset_registration_info(data_directory: str or os.PathLike,
-                                       info_path: str or os.PathLike,
-                                       create_rec: Callable):
+                                       info_path: str or os.PathLike):
     """
     Generates dataset registration information and saves it as a JSON file.
 
     Args:
         data_directory (str or os.PathLike): Directory path of the dataset.
         info_path (str or os.PathLike): Path to save the generated registration information as a JSON file.
-        create_rec (Callable): A function that creates a record based on given parameters.
     """
     # Calculate the total progress based on the number of files to process
     total_progress = sum([len(open(os.path.join(data_directory, 'FDDB-folds', file)).read().split('\n'))
@@ -139,7 +139,7 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
                 # Extract file information and create records using the extract_file_info function
                 records = extract_file_info(data_directory,
                                             os.path.join(data_directory, 'FDDB-folds', file),
-                                            create_rec,
+                                            create_record,
                                             progress_bar)
                 total_records.extend(records)
 
@@ -147,8 +147,49 @@ def generate_dataset_registration_info(data_directory: str or os.PathLike,
     json.dump(total_records, open(info_path, 'w'))
 
 
+def main(download: int,
+         images_download_url: str,
+         annotations_download_url: str,
+         zipped_directory: str or os.PathLike,
+         unzipped_directory: str or os.PathLike):
+    """
+    Encapsulation of the data getting and formatting functionalities, the default output of this function is a directory that contain the dataset in the following hirearchy
+    data:
+    ----raw:
+    --------FDDB:
+    ------------2002
+    ------------2003
+    ------------FDDB-folds
+    ------------FDDB.json
+    Args:
+        download: int, whether to download the dataset or not, activates the download and extract behaviour if > 0
+        unzipped_directory: str or os.PathLike, the directory to which to unpack the zipped dataset
+        images_download_url: str, url to the images zipped file to be downloaded.
+        annotations_download_url: str, url to the zipped images' annotations file to be downloaded
+        zipped_directory: str or os.PathLike, the path to the zipped dataset file.
+
+    Returns:
+        None
+
+    """
+    if download > 0:
+        urls = {
+            'images': images_download_url,
+            'annotations': annotations_download_url
+        }
+        download_and_extract(urls=urls, zipped_directory=zipped_directory, unzipped_directory=unzipped_directory)
+    generate_dataset_registration_info(data_directory=unzipped_directory,
+                                       info_path=os.path.join(unzipped_directory, 'FDDB.json'))
+
+
 if __name__ == '__main__':
-    download_and_extract()
-    generate_dataset_registration_info(os.path.join('data', 'FDDB'),
-                                       info_path=os.path.join('data', 'FDDB', 'FDDB.json'),
-                                       create_rec=create_record)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--download', type=int, default=0)
+    parser.add_argument('--unzipped_directory', type=str, default=os.path.join('data', 'raw', 'FDDB'))
+    parser.add_argument('--zipped_directory', type=str, default=os.path.join('data', 'zipped', 'FDDB'))
+    parser.add_argument('--images_download_url', type=str,
+                        default='https://vis-www.cs.umass.edu/fddb/originalPics.tar.gz')
+    parser.add_argument('--annotations_download_url', type=str,
+                        default='https://vis-www.cs.umass.edu/fddb/FDDB-folds.tgz')
+    args = vars(parser.parse_args())
+    main(**args)

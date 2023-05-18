@@ -11,6 +11,7 @@ import shutil
 import numpy as np
 from typing import List, Dict
 import cv2
+import gdown
 
 CELEB_A_DATASET_DIRECTORY = os.path.join('data', 'raw', 'CelebA')
 CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
@@ -556,3 +557,49 @@ def path_fixer(path: str) -> str:
     path = path.replace('$', os.path.sep)
 
     return path
+
+
+
+def download(urls, directory):
+    """
+    downloads the files at the specified dataset-specific urls
+    Args:
+        urls: dict, (key, value) pairs representing file names (keys) and their corresponding urls (values)
+        directory: str or os.PathLike, the path to the directory to which all downloads will be saved.
+
+    Returns:
+        None
+    """
+    # Create the directory if it doesn't exist
+    os.makedirs(directory, exist_ok=True)
+
+    # iterate through provided urls
+    for key, value in urls.items():
+        # if the url contains the file name with its extension
+        if os.path.isfile(value):
+            # usual request response cycle would work
+            download_files(urls=urls, directory=directory)
+        # the only other possible case (at least for this project) is the url points to a Google Drive item
+        else:
+            # the key has "." then it's probably a file
+            if '.' in key:
+                gdown.download(url=value,
+                               output=os.path.join(directory, key))
+            # otherwise, it's probably a folder
+            else:
+                gdown.download_folder(url=value,
+                                      output=directory,
+                                      quiet=False,
+                                      proxy=None,
+                                      speed=None,
+                                      use_cookies=True)
+
+
+if __name__ == '__main__':
+    test_urls = {'images': 'https://vis-www.cs.umass.edu/fddb/originalPics.tar.gz',
+            'annotations': 'https://vis-www.cs.umass.edu/fddb/FDDB-folds.tgz',
+            'list_bbox_celeba.txt': 'https://drive.google.com/uc?id=19X0GE3kP6tNatS9kZ2-Ks2_OeeCtqeFI'}
+    download_directory = os.path.join('data', 'zipped', 'experimental downloads')
+    download(test_urls, download_directory)
+
+

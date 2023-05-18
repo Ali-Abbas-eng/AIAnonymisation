@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import itertools
-from detectron2.structures import BoxMode
 import requests
+from detectron2.structures import BoxMode
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.utils.visualizer import Visualizer
 from tqdm import tqdm
@@ -9,8 +9,12 @@ import json
 import os
 import shutil
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Union
 import cv2
+import zipfile
+import tarfile
+import lzma
+
 
 CELEB_A_DATASET_DIRECTORY = os.path.join('data', 'raw', 'CelebA')
 CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
@@ -556,3 +560,62 @@ def path_fixer(path: str) -> str:
     path = path.replace('$', os.path.sep)
 
     return path
+
+
+# Set a dictionary of supported compression formats
+SUPPORTED_EXTENSIONS = {
+    '.zip': {'file': lambda path: zipfile.ZipFile(path),
+             'members': lambda path: zipfile.ZipFile(path).namelist()},
+
+    '.tar.gz': {'file': lambda path: tarfile.open(path),
+                'members': lambda path: tarfile.open(path).getmembers()},
+
+    '.tar.xz': {'file': lambda path: tarfile.open(fileobj=lzma.open(path)),
+                'members': lambda path: tarfile.open(fileobj=lzma.open(path)).getmembers()},
+}
+
+
+def extract(path: Union[str, os.PathLike], output_directory: Union[str, os.PathLike]):
+    """
+    a function that extracts the file at the specified path
+    Args:
+        path: str or os.PathLike, the path to the file to be extracted.
+        output_directory: str or os.PathLike, the path to the output file.
+
+    Returns:
+        None
+
+    """
+    # get the extension of the file
+    extension = path[path.index('.'):]
+
+    # get the corresponding information based on the file type
+    file_info = SUPPORTED_EXTENSIONS.get(extension, None)
+
+    # if the dictionary doesn't contain the specified file types are available
+    if file_info is None:
+        # raise a key error explaining what formats are
+        raise KeyError(f'Extension {extension} is not supported')
+
+    # get the file handle
+    file = file_info['file'](path)
+    # get a list of members the file contains
+    members = file_info['members'](path)
+    # noinspection PyTypeChecker
+    # iterate through the list of members
+    for member in tqdm(members, total=len(members), desc=f'Extracting files from {path} to {output_directory}'):
+        # noinspection PyUnresolvedReferences
+        # extract current member
+        file.extract(member, path=output_directory)
+
+
+if __name__ == '__main__':
+    extract(path='data/zipped/yolo_plate_dataset.tar.gz',
+            output_directory='data/raw/YOLO_EXTRACTOR_TEST_GZ_EXTRACTOR')
+
+    extract(path='data/zipped/yolo_plate_dataset.tar.xz',
+            output_directory='data/raw/YOLO_EXTRACTOR_TEST_XZ_EXTRACTOR')
+
+    extract(path='data/zipped/yolo_plate_dataset.zip',
+            output_directory='data/raw/YOLO_EXTRACTOR_TEST_ZIP_EXTRACTOR')
+

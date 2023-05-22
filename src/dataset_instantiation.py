@@ -2,6 +2,8 @@ from .dataset import ImagesDataset
 import os
 from .data_tools import create_record
 from tqdm.auto import tqdm
+from typing import Union, Callable
+import itertools
 
 
 def get_ccpd2019_dataset():
@@ -123,3 +125,71 @@ def get_celeba_dataset():
     celeba_default.registration_info_generator = generate_dataset_registration_info
     return celeba_default
 
+
+def get_wider_face_dataset():
+    def generate_dataset_registration_info(data_directory: str or os.PathLike,
+                                           annotation_files: str or os.PathLike):
+        """
+        This function generates dataset registration information from the annotations file and the data directory.
+
+        Args:
+            data_directory (str or os.PathLike): The directory containing the data.
+            annotation_files (list), list of paths to the annotation files
+
+        Returns:
+            dataset_dicts (list): A list of dictionaries containing the dataset registration information.
+        """
+        annotations = open(annotation_files[0], 'r').read() + '\n' + open(annotation_files[1], 'r').read()
+        # Read the annotations file and split it by new line
+        annotations = annotations.split('\n')
+
+        lines_of_interest = [line for line in annotations if line.endswith('.jpg')]
+        with tqdm(total=len(lines_of_interest), desc='Generating Data From Wider Face') as progress_bar:
+            def generate_data_point(row, image_id):
+                # Check if the line ends with '.jpg'
+                if row.endswith('.jpg'):
+                    idx = annotations.index(row)
+                    # Get the file internal path and image path
+                    file_internal_path = os.path.join(*row.split('/'))
+                    image_path = os.path.join(data_directory, file_internal_path)
+
+                    # Get the number of images and bounding boxes
+                    num_faces = int(annotations[idx + 1])
+                    bboxes = []
+                    for i in range(idx + 2, idx + 2 + num_faces):
+                        bbox = [int(coordinate) for coordinate in annotations[i].split()[:4]]
+                        bbox[2] += bbox[0]
+                        bbox[3] += bbox[1]
+                        bboxes.append(bbox)
+                    bboxes = list(itertools.chain.from_iterable(bboxes))
+
+                    # Create the record and append it to the dataset dictionary
+                    record = create_record(image_path=image_path,
+                                           bounding_boxes=bboxes,
+                                           index=image_id,
+                                           category_id=0)
+                    progress_bar.update()
+                    return record
+
+            dataset_dicts = [generate_data_point(line, index) for index, line in enumerate(lines_of_interest)]
+        return dataset_dicts
+
+    urls = {
+        'WIDER_train.zip': 'https://drive.google.com/uc?id=1w6lLpq6Sh10okRA6bSBqcDEDb-2fK_nc',
+        'WIDER_val.zip': 'https://drive.google.com/uc?id=1wb5jtFTHd9yBZpYpUVO50hb5ofa2NOm3',
+        'wider_face_split.zip': 'https://drive.google.com/uc?id=1KcRtgcLprJBnhKpkEkC-FwBdXrdb_nsv',
+    }
+
+    wider_face_default = ImagesDataset(name='wider_face',
+                                       path=os.path.join('data', 'raw', 'WiderFace'),
+                                       coco_file=os.path.join('data', 'raw', 'wider_face.json'),
+                                       urls=urls,
+                                       cache_directory=os.path.join('data', 'cache', 'WiderFace'),
+                                       )
+    wider_face_default.registration_info_generator_parameters = {
+        'data_directory': os.path.join('data', 'raw', 'WiderFace'),
+        'annotation_files': [os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_train_bbx_gt.txt'),
+                             os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_val_bbx_gt.txt')]
+    }
+    wider_face_default.registration_info_generator = generate_dataset_registration_info
+    return wider_face_default

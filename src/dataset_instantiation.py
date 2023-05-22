@@ -2,7 +2,7 @@ from .dataset import ImagesDataset
 import os
 from .data_tools import create_record
 from tqdm.auto import tqdm
-from typing import Union, Callable
+from .data_tools import path_fixer
 import itertools
 
 
@@ -150,8 +150,8 @@ def get_wider_face_dataset():
                 if row.endswith('.jpg'):
                     idx = annotations.index(row)
                     # Get the file internal path and image path
-                    file_internal_path = os.path.join(*row.split('/'))
-                    image_path = os.path.join(data_directory, file_internal_path)
+                    file_internal_path = path_fixer(row)
+                    image_path = os.path.join(data_directory, 'images',file_internal_path)
 
                     # Get the number of images and bounding boxes
                     num_faces = int(annotations[idx + 1])

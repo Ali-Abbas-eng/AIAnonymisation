@@ -4,7 +4,7 @@ from .data_tools import create_record
 from tqdm.auto import tqdm
 
 
-def get_ccpd2019_data():
+def get_ccpd2019_dataset():
     def generate_ccpd2019_registration_file(data_files_directory):
         def decode_file_name(file_path: str) -> list or None:
             """
@@ -113,7 +113,7 @@ def get_celeba_dataset():
 
     celeba_default = ImagesDataset(name='celeba',
                                    path=os.path.join('data', 'raw', 'CelebA'),
-                                   coco_file=None,
+                                   coco_file=os.path.join('data', 'raw', 'celeba.json'),
                                    urls=urls,
                                    cache_directory=os.path.join('data', 'cache', 'celeba'))
     celeba_default.generate_dataset_registration_info_params = {
@@ -122,3 +122,4 @@ def get_celeba_dataset():
     }
     celeba_default.registration_info_generator = generate_dataset_registration_info
     return celeba_default
+

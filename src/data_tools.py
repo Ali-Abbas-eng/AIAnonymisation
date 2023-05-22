@@ -541,7 +541,8 @@ def generate_splits(directory: str or os.PathLike,
 
 def path_fixer(path: str) -> str:
     """
-    Replaces forward slashes, backslashes and multiple slashes in a path with the appropriate separator for the operating system.
+    Replaces forward slashes, backslashes and multiple slashes in a path with the appropriate separator for
+    the operating system.
 
     Args:
     path (str): The path to be fixed.
@@ -561,7 +562,6 @@ def path_fixer(path: str) -> str:
     path = path.replace('$', os.path.sep)
 
     return path
-
 
 
 def download(urls, directory):
@@ -602,13 +602,13 @@ def download(urls, directory):
 # Set a dictionary of supported compression formats
 SUPPORTED_EXTENSIONS = {
     '.zip': {'file': lambda path: zipfile.ZipFile(path),
-             'members': lambda path: zipfile.ZipFile(path).namelist()},
+             'members': lambda file: file.namelist()},
 
     '.tar.gz': {'file': lambda path: tarfile.open(path),
-                'members': lambda path: tarfile.open(path).getmembers()},
+                'members': lambda file: file.getmembers()},
 
     '.tar.xz': {'file': lambda path: tarfile.open(fileobj=lzma.open(path)),
-                'members': lambda path: tarfile.open(fileobj=lzma.open(path)).getmembers()},
+                'members': lambda file: file.getmembers()},
 }
 
 
@@ -637,7 +637,7 @@ def extract(path: Union[str, os.PathLike], output_directory: Union[str, os.PathL
     # get the file handle
     file = file_info['file'](path)
     # get a list of members the file contains
-    members = file_info['members'](path)
+    members = file_info['members'](file)
     # noinspection PyTypeChecker
     # iterate through the list of members
     for member in tqdm(members, total=len(members), desc=f'Extracting files from {path} to {output_directory}'):

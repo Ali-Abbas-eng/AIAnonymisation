@@ -186,7 +186,7 @@ def get_wider_face_dataset():
                                        urls=urls,
                                        cache_directory=os.path.join('data', 'cache', 'WiderFace'),
                                        )
-    wider_face_default.registration_info_generator_parameters = {
+    wider_face_default.generate_dataset_registration_info_params = {
         'data_directory': os.path.join('data', 'raw', 'WiderFace'),
         'annotation_files': [os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_train_bbx_gt.txt'),
                              os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_val_bbx_gt.txt')]

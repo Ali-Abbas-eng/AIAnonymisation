@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import itertools
 from detectron2.structures import BoxMode
-import requests
 from detectron2.data import DatasetCatalog, MetadataCatalog
 from detectron2.utils.visualizer import Visualizer
 from tqdm import tqdm
@@ -256,46 +255,6 @@ def get_annotations(bounding_boxes, category_id):
     return annotations
 
 
-def download_files(urls: dict, directory: str = 'models'):
-    """
-    Downloads files from the given URLs and saves them to the given directory.
-
-    Args:
-        urls (dict): A dictionary of URLs to download.
-        directory (str): The directory where the files should be saved.
-    """
-    # Create the directory if it doesn't exist
-    os.makedirs(directory, exist_ok=True)
-
-    # Loop through each URL and download the file
-    for key, url in urls.items():
-        # Get the filename from the URL
-        filename = os.path.join(directory, key)
-
-        # Download the file
-        response = requests.get(url, stream=True)
-
-        # Get the size of the file and set the block size for the progress bar
-        file_size = int(response.headers.get('Content-Length', 0))
-        block_size = 1024
-
-        # Create a progress bar for the download
-        progress_bar = tqdm(total=file_size, unit='iB', unit_scale=True, desc=f'Downloading {key.capitalize()}')
-
-        # Loop through the response data and write it to a file while updating the progress bar
-        with open(filename, 'wb') as file:
-            for data in response.iter_content(block_size):
-                progress_bar.update(len(data))
-                file.write(data)
-
-        # Close the progress bar
-        progress_bar.close()
-
-        # Print an error message if the file was not downloaded successfully
-        if file_size != 0 and progress_bar.n != file_size:
-            print(f"ERROR: Failed to download {filename}")
-
-
 def create_dataset_dicts(split: str, data_directory: str = 'data'):
     """
     a functionality to merge json files that contain portions of the total dataset (each downloaded individually)
@@ -537,7 +496,8 @@ def generate_splits(directory: str or os.PathLike,
 
 def path_fixer(path: str) -> str:
     """
-    Replaces forward slashes, backslashes and multiple slashes in a path with the appropriate separator for the operating system.
+    Replaces forward slashes, backslashes and multiple slashes in a path with the appropriate separator for the
+    operating system.
 
     Args:
     path (str): The path to be fixed.
@@ -559,7 +519,6 @@ def path_fixer(path: str) -> str:
     return path
 
 
-
 def download(urls, directory):
     """
     downloads the files at the specified dataset-specific urls
@@ -575,31 +534,14 @@ def download(urls, directory):
 
     # iterate through provided urls
     for key, value in urls.items():
-        # if the url contains the file name with its extension
-        if os.path.isfile(value):
-            # usual request response cycle would work
-            download_files(urls=urls, directory=directory)
-        # the only other possible case (at least for this project) is the url points to a Google Drive item
+        if '.' in key:
+            gdown.download(url=value,
+                           output=os.path.join(directory, key))
+        # otherwise, it's probably a folder
         else:
-            # the key has "." then it's probably a file
-            if '.' in key:
-                gdown.download(url=value,
-                               output=os.path.join(directory, key))
-            # otherwise, it's probably a folder
-            else:
-                gdown.download_folder(url=value,
-                                      output=directory,
-                                      quiet=False,
-                                      proxy=None,
-                                      speed=None,
-                                      use_cookies=True)
-
-
-if __name__ == '__main__':
-    test_urls = {'images': 'https://vis-www.cs.umass.edu/fddb/originalPics.tar.gz',
-            'annotations': 'https://vis-www.cs.umass.edu/fddb/FDDB-folds.tgz',
-            'list_bbox_celeba.txt': 'https://drive.google.com/uc?id=19X0GE3kP6tNatS9kZ2-Ks2_OeeCtqeFI'}
-    download_directory = os.path.join('data', 'zipped', 'experimental downloads')
-    download(test_urls, download_directory)
-
-
+            gdown.download_folder(url=value,
+                                  output=directory,
+                                  quiet=False,
+                                  proxy=None,
+                                  speed=None,
+                                  use_cookies=True)

@@ -609,6 +609,8 @@ SUPPORTED_EXTENSIONS = {
 
     '.tar.xz': {'file': lambda path: tarfile.open(fileobj=lzma.open(path)),
                 'members': lambda file: file.getmembers()},
+    '.tgz': {'file': lambda path: tarfile.open(path, 'r:gz'),
+             'members': lambda file: file.getmembers()}
 }
 
 
@@ -643,7 +645,11 @@ def extract(path: Union[str, os.PathLike], output_directory: Union[str, os.PathL
     for member in tqdm(members, total=len(members), desc=f'Extracting files from {path} to {output_directory}'):
         # noinspection PyUnresolvedReferences
         # extract current member
-        file.extract(member, path=output_directory)
+        try:
+            file.extract(member, path=output_directory)
+        except PermissionError:
+            # Most likely it's a duplicated file trying to be written again
+            pass
 
 
 if __name__ == '__main__':

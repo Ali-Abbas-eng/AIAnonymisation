@@ -30,6 +30,8 @@ def evaluate(network: str or os.PathLike,
                                    output_dir=output_dir,
                                    device=device,
                                    return_cfg=True)
+    # Set the batch size
+    cfg.SOLVER.IMS_PER_BATCH = 1
 
     # Evaluate model on test dataset
     evaluator = COCOEvaluator('test_data', output_dir=output_dir)

@@ -1,15 +1,18 @@
-from .data_tools import download, extract
+from src.data_tools import download, extract, modify_record
 import os
 import json
 from typing import Union, Callable
 from os import PathLike
 import shutil
+from random import shuffle
+
 
 class ImagesDataset:
     """
     Encapsulation of the Dataset classes, all dataset used in this project MUST use this class as a super class, or
     ideally, instantiate an object from this class with the dataset-specific information as parameters
     """
+
     def __init__(self,
                  name: str,
                  path: Union[str, PathLike],
@@ -17,8 +20,7 @@ class ImagesDataset:
                  urls: dict = None,
                  cache_directory: Union[str, PathLike] = None,
                  auto_remove_cache: bool = True,
-                 registration_info_generator: Callable = None,
-                 registration_info_generator_parameters: dict = None) -> None:
+                 shuffle: bool = True) -> None:
         """
         initializer of the dataset
         Args:
@@ -28,8 +30,7 @@ class ImagesDataset:
             urls: dict, keys are file names and values are corresponding urls pointing to the file .
             cache_directory: str or PathLike, directory in which the downloaded files will be saved.
             auto_remove_cache: bool, set to True in case you want to delete downloaded files upon extraction.
-            registration_info_generator: Callable, function that returns a list of dicts representing the dataset
-            registration_info_generator_parameters: dict, parameters to the registry generating function.
+            shuffle: bool, whether to shuffle the dataset upon creation.
         """
         # Set dataset attributes
         self.name = name
@@ -48,6 +49,34 @@ class ImagesDataset:
         # Set the current value of the registration_info_generator to None (since it's most likely to be used only once)
         self.registration_info_generator: Callable = None
 
+        # Set the value to the readiness of the dataset relevant to the existence of the coco file
+        self.ready_to_use = os.path.exists(self.coco_file)
+
+        # Set the value of the shuffle attribute
+        self.shuffle = shuffle
+
+    def get_data_list(self):
+        """
+        Helper function that gets the dataset in the same coco format saved to disk (generates the file if nonexistent)
+        Returns:
+            list, list of dictionaries representing the dataset
+
+        """
+        # if the coco file exists
+        if self.ready_to_use:
+            data_list = json.load(open(self.coco_file))
+            if self.shuffle:
+                shuffle(data_list)
+
+            # read the file, return the content
+            return data_list
+        # If the coco file doesn't exist
+        else:
+            # Generate the file
+            self.generate_dataset_registration_info()
+            # Recursive call to make things easier
+            return self.get_data_list()
+
     def generate_dataset_registration_info(self):
         """
         this function will call the registration info generator which is a function provided with the dataset, since
@@ -59,6 +88,9 @@ class ImagesDataset:
         records = self.registration_info_generator(**self.generate_dataset_registration_info_params)
         # Dump the dataset_dicts to the info file
         json.dump(records, open(self.coco_file, 'w'))
+
+        # Set the value of ready_to_use attribute to True since the dataset coco file was just created
+        self.ready_to_use = True
 
     def extract_dataset_files(self) -> None:
         """
@@ -92,3 +124,35 @@ class ImagesDataset:
             download(urls=self.urls, directory=self.cache_directory)
         # extract downloaded files
         self.extract_dataset_files()
+
+    def split(self, splits: dict):
+        """
+        helper function to split the dataset into multiple subsets (generally, train, test, and validation splits)
+        Args:
+            splits: dict, keys are strings representing the paths to the new subsets (json files),
+             values are size of the split
+            relative to the whole dataset
+        Returns:
+            None, writes len(splits.keys) new files each with the name convention that is (dataset_name_key.json)
+        """
+        # Make sure there is nothing fishy in the provided parameters (sum of the proportion MUST equal 1)
+        assert sum(list(splits.values())) == 1., 'Provided proportions of the dataset does not add up to one.'
+        # Generate a list of dictionaries representing the dataset in COCO format
+        data_list = self.get_data_list()
+        # If the coco file exists
+        if self.ready_to_use:
+            # Start from the very beginning of the dataset
+            start_index = 0
+            # Iterate through the provided subset information
+            for split, proportion in splits.items():
+                # Calculate the end to of the new subset as the len(data_list) * relative size of subset (proportion)
+                end_index = int(len(data_list) * proportion)
+                # Create the new subset files
+                subset = data_list[start_index: start_index + end_index]
+                # Reset the indexes of the records in the generated data split (file indexes in new split starts from 0)
+                subset = [modify_record(record=record, new_index=index, new_path=record['file_name'])
+                          for index, record in enumerate(subset)]
+                # Set the new value of the start_index to be the end index of the current subset
+                start_index = len(subset)
+                # Write the new subset to the provided path
+                json.dump(subset, open(split, 'w'))

@@ -1,6 +1,5 @@
 import warnings
-
-from data_tools import register_dataset, visualize_sample
+from data_tools import register_dataset
 from training_utils import get_cfg, Trainer
 import os
 import argparse

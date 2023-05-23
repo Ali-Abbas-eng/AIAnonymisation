@@ -3,12 +3,8 @@ import os
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from detectron2.data import build_detection_test_loader
 from detectron2.utils.logger import setup_logger
-try:
-    from training_utils import get_cfg
-    from inference import get_predictor
-except ModuleNotFoundError:
-    from src.training_utils import get_cfg
-    from src.inference import get_predictor
+from inference import get_predictor
+
 setup_logger()
 
 
@@ -29,11 +25,11 @@ def evaluate(network: str or os.PathLike,
     """
     # Get predictor object
     predictor, cfg = get_predictor(network=network,
-                              model_weights=model_weights,
-                              test_data_file=test_data_file,
-                              output_dir=output_dir,
-                              device=device,
-                                  return_cfg=True)
+                                   model_weights=model_weights,
+                                   test_data_file=test_data_file,
+                                   output_dir=output_dir,
+                                   device=device,
+                                   return_cfg=True)
 
     # Evaluate model on test dataset
     evaluator = COCOEvaluator('test_data', output_dir=output_dir)

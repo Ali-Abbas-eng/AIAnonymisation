@@ -5,7 +5,6 @@ from detectron2.engine.defaults import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
 from detectron2.config import get_cfg as base_configurations
 from detectron2.model_zoo import get_config_file, get_checkpoint_url
-from detectron2.engine import hooks
 from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
 
 

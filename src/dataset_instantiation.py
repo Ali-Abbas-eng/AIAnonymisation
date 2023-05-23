@@ -1,10 +1,9 @@
-from src.dataset import ImagesDataset
-import os
-from src.data_tools import create_record
-from tqdm.auto import tqdm
-from src.data_tools import path_fixer
-import itertools
+from dataset import ImagesDataset
+from data_tools import create_record, path_fixer
 from typing import Callable
+from tqdm.auto import tqdm
+import itertools
+import os
 
 
 def get_ccpd2019_dataset():

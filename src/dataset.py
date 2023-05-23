@@ -1,4 +1,4 @@
-from src.data_tools import download, extract, modify_record
+from data_tools import download, extract, modify_record
 import os
 import json
 from typing import Union, Callable

@@ -11,6 +11,10 @@ import numpy as np
 from typing import List, Dict
 import cv2
 import gdown
+import zipfile
+import tarfile
+import lzma
+
 
 CELEB_A_DATASET_DIRECTORY = os.path.join('data', 'raw', 'CelebA')
 CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
@@ -545,3 +549,56 @@ def download(urls, directory):
                                   proxy=None,
                                   speed=None,
                                   use_cookies=True)
+
+
+# Set a dictionary of supported compression formats
+SUPPORTED_EXTENSIONS = {
+    '.zip': {'file': lambda path: zipfile.ZipFile(path),
+             'members': lambda file: file.namelist()},
+
+    '.tar.gz': {'file': lambda path: tarfile.open(path),
+                'members': lambda file: file.getmembers()},
+
+    '.tar.xz': {'file': lambda path: tarfile.open(fileobj=lzma.open(path)),
+                'members': lambda file: file.getmembers()},
+    '.tgz': {'file': lambda path: tarfile.open(path, 'r:gz'),
+             'members': lambda file: file.getmembers()}
+}
+
+
+def extract(path: Union[str, os.PathLike], output_directory: Union[str, os.PathLike]):
+    """
+    a function that extracts the file at the specified path
+    Args:
+        path: str or os.PathLike, the path to the file to be extracted.
+        output_directory: str or os.PathLike, the path to the output file.
+
+    Returns:
+        None
+
+    """
+    # get the extension of the file
+    extension = path[path.index('.'):]
+
+    # get the corresponding information based on the file type
+    file_info = SUPPORTED_EXTENSIONS.get(extension, None)
+
+    # if the dictionary doesn't contain the specified file types are available
+    if file_info is None:
+        # raise a key error explaining what formats are
+        raise KeyError(f'Extension {extension} is not supported')
+
+    # get the file handle
+    file = file_info['file'](path)
+    # get a list of members the file contains
+    members = file_info['members'](file)
+    # noinspection PyTypeChecker
+    # iterate through the list of members
+    for member in tqdm(members, total=len(members), desc=f'Extracting files from {path} to {output_directory}'):
+        # noinspection PyUnresolvedReferences
+        # extract current member
+        try:
+            file.extract(member, path=output_directory)
+        except PermissionError:
+            # Most likely it's a duplicated file trying to be written again
+            pass

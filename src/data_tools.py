@@ -8,7 +8,7 @@ import json
 import os
 import shutil
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Union
 import cv2
 import gdown
 import zipfile

@@ -314,7 +314,7 @@ def get_fddb_dataset():
     return fddb_default
 
 
-if __name__ == '__main__':
-    data = get_fddb_dataset()
-    data.download_dataset_files()
-    data.generate_dataset_registration_info()
+CELEBA_DEFAULT = get_celeba_dataset()
+CCPD2019_DEFAULT = get_ccpd2019_dataset()
+FDDB_DEFAULT = get_fddb_dataset()
+WIDER_FACE_DEFAULT = get_wider_face_dataset()

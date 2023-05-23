@@ -3,6 +3,7 @@ from data_tools import create_record, path_fixer
 from typing import Callable
 from tqdm.auto import tqdm
 import itertools
+import argparse
 import os
 
 
@@ -313,7 +314,55 @@ def get_fddb_dataset():
     return fddb_default
 
 
-CELEBA_DEFAULT = get_celeba_dataset()
-CCPD2019_DEFAULT = get_ccpd2019_dataset()
-FDDB_DEFAULT = get_fddb_dataset()
-WIDER_FACE_DEFAULT = get_wider_face_dataset()
+datasets = {
+    'celeba': get_celeba_dataset(),
+    'ccpd2019': get_ccpd2019_dataset(),
+    'fddb': get_fddb_dataset(),
+    'wider_face': get_wider_face_dataset()
+
+}
+
+
+def main(dataset_name: str,
+         download: bool,
+         extract: bool,
+         splits: list = None,
+         proportions: list = None):
+    assert dataset_name.lower() in datasets.keys(), f'name not found,' \
+                                                    f' expected one of {datasets.keys()} got {dataset_name}'
+    dataset: ImagesDataset = datasets[dataset_name]
+    if download:
+        dataset.download_dataset_files()
+    if extract and not download:
+        dataset.extract_dataset_files()
+
+    if not dataset.ready_to_use:
+        dataset.generate_dataset_registration_info()
+
+    if splits:
+        assert type(splits) == list, 'splits must be a list of paths to the files of the new subsets of the dataset'
+        assert type(proportions) == list and len(proportions) == len(splits),\
+            f'splits and proportions must be lists of the same length'
+        dataset.split({splits[i]: proportions[i] for i in range(len(splits))})
+
+
+if __name__ == '__main__':
+    usage = f"""
+    python src/dataset_instantiation.py --dataset_name <name of the dataset which can be one of {datasets.keys()}>
+                                        --download (optional) use if you don't have the dataset on your device
+                                        --extract (optional) use if you have the dataset only in compressed format
+                                        --splits (optional) multiple values representing the paths to the new json 
+                                                                    format representing the new splits of the dataset
+                                        --proportions (optional) if you want to split the data you MUST provide this 
+                                        argument and the previous one (splits) for each json file you provided earlier,
+                                        provide the proportion of the dataset held in that particular file
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset_name', type=str, required=True, help=f'one of {datasets.keys()}')
+    parser.add_argument('--download', action='store_true', help='Use if you do not have the dataset on your device')
+    parser.add_argument('--extract', action='store_true', help='User if you do have the dataset in compressed format')
+    parser.add_argument('--splits', nargs='+', help='Provide a list of json files to store splits of the dataset')
+    parser.add_argument('--proportions', nargs='+', type=float, help='In case you want to split the data provide '
+                                                                     'the size of each split')
+    args = vars(parser.parse_args())
+    main(**args)

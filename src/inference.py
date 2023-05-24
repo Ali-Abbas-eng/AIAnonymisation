@@ -201,6 +201,34 @@ def supported(file, file_type):
     return False
 
 
+def predict_on_file(path: str or os.PathLike,
+                    output_path: str or os.PathLike,
+                    predictor: DefaultPredictor,
+                    metadata: MetadataCatalog,
+                    scale: float):
+    # Set up the 'support error message'
+    support_error = 'File type is not supported by the inference module'
+
+    # Determine the file type
+    file_type = 'image' if supported(path, 'image') else 'video' if supported(path, 'video') else exit(support_error)
+
+    # Invoke the appropriate function w.r.t file type
+    if file_type == 'video':
+        predict_on_video(path, output_path, predictor, metadata, scale)
+    elif file_type == 'image':
+        # Read in the image using matplotlib
+        image = plt.imread(path)
+        # Perform object detection on the image using the predictor and metadata
+        try:
+            output = inference_step(predictor, image, metadata, scale)
+            # Save the output image to the output directory with the same filename as the input file
+            plt.imsave(output_path, output)
+
+        except ValueError:
+            pass
+
+
+
 def inference_manager(network: str or os.PathLike or DefaultPredictor,
                       target_path: str or os.PathLike,
                       output_path: str or os.PathLike,
@@ -235,15 +263,6 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
     if model_weights:
         model_weights = path_fixer(model_weights)
 
-    # Create the output directory if it doesn't exist
-    os.makedirs(output_path, exist_ok=True)
-
-    # Get the list of files and directories to process
-    contents = os.listdir(target_path)
-    images = [os.path.join(target_path, file) for file in contents if supported(file, file_type='image')]
-    videos = [os.path.join(target_path, file) for file in contents if supported(file, file_type='video')]
-    directories = [os.path.join(target_path, file) for file in contents if os.path.isdir(os.path.join(target_path, file))]
-
     # Get the predictor object
     if not type(network) == DefaultPredictor:
         predictor = get_predictor(network=network,
@@ -260,24 +279,38 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
     # Get the metadata for the input images
     metadata = MetadataCatalog.get('test_data')
 
-    # Process the images
-    predict_on_directory(images, output_path, predictor, metadata, scale)
+    # In the case of a single file
+    if os.path.isfile(target_path):
+        predict_on_file(target_path, output_path, predictor, metadata, scale)
+    else:
+        # Create the output directory if it doesn't exist
+        os.makedirs(output_path, exist_ok=True)
 
-    # Process the videos
-    [predict_on_video(file, os.path.join(output_path, os.path.basename(file)), predictor, metadata, scale)
-     for file in videos]
+        # Get the list of files and directories to process
+        contents = os.listdir(target_path)
+        images = [os.path.join(target_path, file) for file in contents if supported(file, file_type='image')]
+        videos = [os.path.join(target_path, file) for file in contents if supported(file, file_type='video')]
+        directories = [os.path.join(target_path, file) for file in contents if
+                       os.path.isdir(os.path.join(target_path, file))]
 
-    # Process the subdirectories recursively
-    [inference_manager(predictor,
-                       os.path.join(subdir),
-                       os.path.join(output_path, subdir.split(os.path.sep)[-1]),
-                       model_weights,
-                       test_data_file,
-                       device,
-                       cache_dir,
-                       threshold,
-                       scale)
-     for subdir in directories]
+        # Process the images
+        predict_on_directory(images, output_path, predictor, metadata, scale)
+
+        # Process the videos
+        [predict_on_video(file, os.path.join(output_path, os.path.basename(file)), predictor, metadata, scale)
+         for file in videos]
+
+        # Process the subdirectories recursively
+        [inference_manager(predictor,
+                           os.path.join(subdir),
+                           os.path.join(output_path, subdir.split(os.path.sep)[-1]),
+                           model_weights,
+                           test_data_file,
+                           device,
+                           cache_dir,
+                           threshold,
+                           scale)
+         for subdir in directories]
 
 
 if __name__ == '__main__':

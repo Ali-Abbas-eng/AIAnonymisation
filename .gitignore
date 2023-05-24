@@ -6,7 +6,7 @@ custom_trainer.py
 */__pycache__/
 /Untitled.ipynb
 /models/
-/output/
+/output*
 /tests/
 /output_trial_003/
 /src/detectron2/

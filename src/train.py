@@ -1,6 +1,5 @@
 import warnings
-from utils import register_dataset
-from training_utils import get_cfg
+from utils import register_dataset, get_cfg
 import argparse
 import os
 from detectron2.engine.defaults import DefaultTrainer

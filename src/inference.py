@@ -10,10 +10,9 @@ from tqdm import tqdm
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from utils import path_fixer
+from utils import path_fixer, get_cfg
 from detectron2.utils.visualizer import Visualizer
 import argparse
-from training_utils import get_cfg
 from termcolor import colored
 setup_logger()
 supported_formats = {

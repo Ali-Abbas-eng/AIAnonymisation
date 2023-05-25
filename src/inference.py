@@ -13,15 +13,14 @@ import matplotlib.pyplot as plt
 from data_tools import path_fixer
 from detectron2.utils.visualizer import Visualizer
 import argparse
-try:
-    from training_utils import get_cfg
-except ModuleNotFoundError:
-    from src.training_utils import get_cfg
+from training_utils import get_cfg
+from termcolor import colored
 setup_logger()
 supported_formats = {
     'image': ['png', 'jpg', 'jpeg'],
     'video': ['avi', 'mp4', 'mov']
 }
+read_image = cv2.imread
 
 
 def get_predictor(network: str or os.PathLike,
@@ -119,11 +118,10 @@ def predict_on_video(video_object: str or os.PathLike,
     # noinspection PyUnresolvedReferences
     video_writer = cv2.VideoWriter(output_path, fourcc, 30.0, (frame_width, frame_height))
 
-    for _ in tqdm(range(frame_count), desc=f'Inference on Video {video_object}'):
+    for _ in tqdm(range(frame_count), desc=colored(f'Inference on Video {video_object}', 'blue')):
         # Read the current frame from the input video
         _, im = cap.read()
         im = im[:, :, ::-1]
-
         # Apply the object detection model to the current frame
         new_frame = inference_step(predictor, im, metadata, scale)
 
@@ -163,7 +161,7 @@ def predict_on_directory(directory: str or os.PathLike or list,
         # Iterate over each file in the directory and perform object detection on each image
         for file in tqdm(directory, desc=f'Performing Inference on Images at {base_dir}'):
             # Read in the image using matplotlib
-            image = plt.imread(file)
+            image = read_image(file)
             try:
                 # Perform object detection on the image using the predictor and metadata
                 output = inference_step(predictor, image, metadata, scale)
@@ -195,7 +193,7 @@ def inference_step(predictor, image, metadata, scale):
 
     # Convert the output image to a numpy array and return it
     out = np.array(out.get_image(), dtype='uint8')
-    return out
+    return out[:, :, ::-1]
 
 
 def supported(file, file_type):
@@ -221,11 +219,21 @@ def predict_on_file(path: str or os.PathLike,
         predict_on_video(path, output_path, predictor, metadata, scale)
     elif file_type == 'image':
         # Read in the image using matplotlib
-        image = plt.imread(path)
-        # Perform object detection on the image using the predictor and metadata
-        output = inference_step(predictor, image, metadata, scale)
-        # Save the output image to the output directory with the same filename as the input file
-        plt.imsave(output_path, output)
+        image = read_image(path)
+        try:
+            # Perform object detection on the image using the predictor and metadata
+            output = inference_step(predictor, image, metadata, scale)
+            # Save the output image to the output directory with the same filename as the input file
+            plt.imsave(output_path, output)
+        except ValueError:
+            pass
+
+
+def replicate_directory_structure(files: list):
+    for file in files:
+        basename = os.path.basename(file)
+        directory = file[:file.index(basename)]
+        os.makedirs(directory, exist_ok=True)
 
 
 def inference_manager(network: str or os.PathLike or DefaultPredictor,
@@ -280,36 +288,23 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
 
     # In the case of a single file
     if os.path.isfile(target_path):
-        predict_on_file(target_path, output_path, predictor, metadata, scale)
+        file_pairs = [(target_path, output_path)]
     else:
         # Create the output directory if it doesn't exist
         os.makedirs(output_path, exist_ok=True)
 
-        # Get the list of files and directories to process
-        contents = os.listdir(target_path)
-        images = [os.path.join(target_path, file) for file in contents if supported(file, file_type='image')]
-        videos = [os.path.join(target_path, file) for file in contents if supported(file, file_type='video')]
-        directories = [os.path.join(target_path, file) for file in contents if
-                       os.path.isdir(os.path.join(target_path, file))]
+        file_pairs = []
+        for root, _, files in os.walk(target_path):
+            for file in files:
+                input_file = os.path.join(root, file)
+                output_file = path_fixer(input_file[len(target_path) + 1:])
+                output_file = os.path.join(output_path, output_file)
+                file_pairs.append((input_file, output_file))
 
-        # Process the images
-        predict_on_directory(images, output_path, predictor, metadata, scale)
-
-        # Process the videos
-        [predict_on_video(file, os.path.join(output_path, os.path.basename(file)), predictor, metadata, scale)
-         for file in videos]
-
-        # Process the subdirectories recursively
-        [inference_manager(predictor,
-                           os.path.join(subdir),
-                           os.path.join(output_path, subdir.split(os.path.sep)[-1]),
-                           model_weights,
-                           test_data_file,
-                           device,
-                           cache_dir,
-                           threshold,
-                           scale)
-         for subdir in directories]
+    replicate_directory_structure([file[1] for file in file_pairs])
+    progress_bar_description = colored(f'Performing Inference on the Content of "{target_path}"', 'green')
+    for index, (input_file, output_file) in tqdm(enumerate(file_pairs), total=len(file_pairs), desc=progress_bar_description):
+        predict_on_file(input_file, output_file, predictor, metadata, scale)
 
 
 if __name__ == '__main__':

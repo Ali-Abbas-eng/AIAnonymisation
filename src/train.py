@@ -57,22 +57,28 @@ def train(network_base_name: str,
                              min_learning_rate=min_learning_rate,
                              freeze_at=freeze_at)
 
-#     [visualize_sample(file, show=False, save_path=file.replace('json', 'png'))
-#      for file in [*train_files, *valid_files]]
+    #     [visualize_sample(file, show=False, save_path=file.replace('json', 'png'))
+    #      for file in [*train_files, *valid_files]]
     # Create trainer object with configurations
     trainer = Trainer(configurations)
 
-    # Resume training if possible
-    trainer.resume_or_load(True)
+    for parameter in trainer.model.parameters():
+        parameter.requires_grad = False
 
-    # Train model
-    trainer.train()
-
-    evaluate(network=network_base_name,
-             model_weights=os.path.join(output_directory, network_base_name, 'model_final.pth'),
-             test_data_file=os.path.join('data', 'test.json'),
-             output_dir=os.path.join(output_directory, network_base_name, 'test'),
-             device=eval_device)
+    for parameter in trainer.model.roi_heads.parameters():
+        parameter.requires_grad = True
+    print(trainer.model.__dict__)
+    # # Resume training if possible
+    # trainer.resume_or_load(True)
+    #
+    # # Train model
+    # trainer.train()
+    #
+    # evaluate(network=network_base_name,
+    #          model_weights=os.path.join(output_directory, network_base_name, 'model_final.pth'),
+    #          test_data_file=os.path.join('data', 'test.json'),
+    #          output_dir=os.path.join(output_directory, network_base_name, 'test'),
+    #          device=eval_device)
 
 
 if __name__ == '__main__':
@@ -96,4 +102,3 @@ if __name__ == '__main__':
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
         train(**args)
-

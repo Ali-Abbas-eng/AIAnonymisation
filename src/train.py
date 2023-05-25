@@ -5,6 +5,7 @@ import os
 from detectron2.engine.defaults import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
 from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
+import torch
 
 
 class Trainer(DefaultTrainer):
@@ -115,6 +116,8 @@ def train(network_base_name: str,
     # Resume training if possible
     trainer.resume_or_load(True)
 
+    trainer.train()
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -129,7 +132,6 @@ if __name__ == '__main__':
     parser.add_argument('--train_steps', type=int, default=50_000)
     parser.add_argument('--eval_steps', type=int, default=10_000)
     parser.add_argument('--batch_size', type=int, default=2)
-    parser.add_argument('--eval_device', type=str, default='cuda')
     parser.add_argument('--min_learning_rate', type=float, default=1e-5)
     parser.add_argument('--freeze_at', type=int, default=0)
     parser.add_argument('--roi_heads', type=int, default=256)

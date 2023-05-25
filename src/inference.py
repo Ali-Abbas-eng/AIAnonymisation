@@ -121,7 +121,7 @@ def predict_on_video(video_object: str or os.PathLike,
     for _ in tqdm(range(frame_count), desc=colored(f'Inference on Video {video_object}', 'blue')):
         # Read the current frame from the input video
         _, im = cap.read()
-        im = im[:, :, ::-1]
+
         # Apply the object detection model to the current frame
         new_frame = inference_step(predictor, im, metadata, scale)
 
@@ -133,42 +133,6 @@ def predict_on_video(video_object: str or os.PathLike,
 
     # Clean up resources
     del predictor
-
-
-def predict_on_directory(directory: str or os.PathLike or list,
-                         output_directory: str or os.PathLike,
-                         predictor: DefaultPredictor,
-                         metadata: MetadataCatalog,
-                         scale: float = 1.):
-    """
-    Perform object detection on all image files in a directory and save the output to another directory.
-
-    Args:
-        directory (str or os.PathLike or list): The directory or list of directories containing the input image files.
-        output_directory (str or os.PathLike): The directory to save the output images.
-        predictor (DefaultPredictor): The object detection model predictor.
-        metadata (MetadataCatalog): The metadata for the input images.
-        scale (float): The scale factor for the images.
-
-    Returns:
-        None
-    """
-    # If the directory argument is a string, convert it to a list of file paths
-    if type(directory) == str:
-        directory = [os.path.join(directory, file) for file in os.listdir(directory)]
-    if len(directory) > 0:
-        base_dir = directory[0][:directory[0].index(os.path.basename(directory[0]))]
-        # Iterate over each file in the directory and perform object detection on each image
-        for file in tqdm(directory, desc=f'Performing Inference on Images at {base_dir}'):
-            # Read in the image using matplotlib
-            image = read_image(file)
-            try:
-                # Perform object detection on the image using the predictor and metadata
-                output = inference_step(predictor, image, metadata, scale)
-                # Save the output image to the output directory with the same filename as the input file
-                plt.imsave(os.path.join(output_directory, os.path.basename(file)), output)
-            except ValueError:
-                pass
 
 
 def inference_step(predictor, image, metadata, scale):
@@ -230,9 +194,21 @@ def predict_on_file(path: str or os.PathLike,
 
 
 def replicate_directory_structure(files: list):
+    """
+    A helper function to create all the directories mentioned in a list of file paths,
+     so we don't hit a FileNotFound Exception
+    Arguments:
+        files: list, list of paths to files (the directories doesn't necessarily exist)
+    Returns:
+        None
+    """
+    # Iterate through the list of files
     for file in files:
+        # Extract the basename of the file
         basename = os.path.basename(file)
+        # Get the logical name of the directory
         directory = file[:file.index(basename)]
+        # Make the directory
         os.makedirs(directory, exist_ok=True)
 
 
@@ -292,18 +268,31 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
     else:
         # Create the output directory if it doesn't exist
         os.makedirs(output_path, exist_ok=True)
-
+        # Initialise the list of (input, output) files to be used in inference
         file_pairs = []
-        for root, _, files in os.walk(target_path):
-            for file in files:
-                input_file = os.path.join(root, file)
-                output_file = path_fixer(input_file[len(target_path) + 1:])
-                output_file = os.path.join(output_path, output_file)
-                file_pairs.append((input_file, output_file))
 
+        # Loop through the internal structure of the provided directory
+        for root, _, files in os.walk(target_path):
+            # Iterate through files at current level
+            for file in files:
+                # Generate the name of the input file
+                input_file = os.path.join(root, file)
+                # Initialise the name of the output file
+                output_file = path_fixer(input_file[len(target_path) + 1:])
+                # Add the provided 'output_path' to the output file name
+                output_file = os.path.join(output_path, output_file)
+
+                # Add the current input and output samples to the list of file pairs
+                file_pairs.append((input_file, output_file))
+    # Replicate the internal structure of the target path into the output path
     replicate_directory_structure([file[1] for file in file_pairs])
+
+    # Set the string representing the description of the progress bar
     progress_bar_description = colored(f'Performing Inference on the Content of "{target_path}"', 'green')
+
+    # Iterate through the list of file pairs
     for index, (input_file, output_file) in tqdm(enumerate(file_pairs), total=len(file_pairs), desc=progress_bar_description):
+        # Perform inference on files
         predict_on_file(input_file, output_file, predictor, metadata, scale)
 
 

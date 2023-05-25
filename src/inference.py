@@ -163,10 +163,13 @@ def predict_on_directory(directory: str or os.PathLike or list,
         for file in tqdm(directory, desc=f'Performing Inference on Images at {base_dir}'):
             # Read in the image using matplotlib
             image = plt.imread(file)
-            # Perform object detection on the image using the predictor and metadata
-            output = inference_step(predictor, image, metadata, scale)
-            # Save the output image to the output directory with the same filename as the input file
-            plt.imsave(os.path.join(output_directory, os.path.basename(file)), output)
+            try:
+                # Perform object detection on the image using the predictor and metadata
+                output = inference_step(predictor, image, metadata, scale)
+                # Save the output image to the output directory with the same filename as the input file
+                plt.imsave(os.path.join(output_directory, os.path.basename(file)), output)
+            except ValueError:
+                pass
 
 
 def inference_step(predictor, image, metadata, scale):
@@ -219,14 +222,9 @@ def predict_on_file(path: str or os.PathLike,
         # Read in the image using matplotlib
         image = plt.imread(path)
         # Perform object detection on the image using the predictor and metadata
-        try:
-            output = inference_step(predictor, image, metadata, scale)
-            # Save the output image to the output directory with the same filename as the input file
-            plt.imsave(output_path, output)
-
-        except ValueError:
-            pass
-
+        output = inference_step(predictor, image, metadata, scale)
+        # Save the output image to the output directory with the same filename as the input file
+        plt.imsave(output_path, output)
 
 
 def inference_manager(network: str or os.PathLike or DefaultPredictor,

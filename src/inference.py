@@ -40,6 +40,7 @@ def get_predictor(network: str or os.PathLike,
         output_dir (str or os.PathLike): The path to the output directory.
         device (str): The device on which the model should run.
         threshold (float): The score threshold for predictions.
+        return_cfg (bool): Whether to return the ConfigurationNode Object (used in the evaluation code).
 
     Returns:
         DefaultPredictor: A DefaultPredictor object for the given model.

@@ -2,7 +2,7 @@ import json
 import matplotlib.pyplot as plt
 import os
 from tqdm.auto import tqdm
-from data_tools import create_record, path_fixer
+from utils import create_record, path_fixer
 from argparse import ArgumentParser
 from typing import Union, List, Tuple, AnyStr
 from os import PathLike

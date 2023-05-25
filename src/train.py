@@ -1,7 +1,56 @@
 import warnings
-from data_tools import register_dataset
-from training_utils import get_cfg, Trainer
+from utils import register_dataset
+from training_utils import get_cfg
 import argparse
+import os
+from detectron2.engine.defaults import DefaultTrainer
+from detectron2.evaluation import COCOEvaluator
+from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
+
+
+class Trainer(DefaultTrainer):
+    """
+    A custom trainer class that inherits the DefaultTrainer class from Detectron2.
+    """
+
+    @classmethod
+    def build_evaluator(cls, cfg, dataset_name, output_folder: str = None):
+        """
+        A class method that builds a COCOEvaluator object for evaluation.
+
+        Parameters:
+            cfg (CfgNode): A configuration object.
+            dataset_name (str): The name of the dataset to be evaluated.
+            output_folder (str): The directory to save evaluation results. If None, it is saved in cfg.OUTPUT_DIR/eval.
+
+        Returns:
+            evaluator (COCOEvaluator): A COCOEvaluator object for evaluation.
+        """
+
+        # If output folder is not provided, create a new one in cfg.OUTPUT_DIR/eval
+        if output_folder is None:
+            output_folder = os.path.join(cfg.OUTPUT_DIR, 'eval')
+        os.makedirs(output_folder, exist_ok=True)
+
+        # Create a COCOEvaluator object for evaluation
+        evaluator = COCOEvaluator(dataset_name, cfg, False, output_folder)
+
+        return evaluator
+
+    @classmethod
+    def build_optimizer(cls, cfg, model):
+        params = get_default_optimizer_params(
+            model,
+            base_lr=cfg.SOLVER.BASE_LR,
+            weight_decay_norm=cfg.SOLVER.WEIGHT_DECAY_NORM,
+            bias_lr_factor=cfg.SOLVER.BIAS_LR_FACTOR,
+            weight_decay_bias=cfg.SOLVER.WEIGHT_DECAY_BIAS,
+        )
+        return maybe_add_gradient_clipping(cfg, torch.optim.Adam)(
+            params,
+            lr=cfg.SOLVER.BASE_LR,
+            weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+        )
 
 
 def train(network_base_name: str,
@@ -32,7 +81,6 @@ def train(network_base_name: str,
     :param min_learning_rate: float, the minimum value for the learning rate.
     :param freeze_at: int, index of the last layer to be frozen in the sequence of frozen layer (0 means freeze all but the
     output layer, -1 means train all).
-    :param roi_heads: int, number of Region Of Interest Heads in the output layer of the model.
     :param roi_heads: int, number of Region Of Interest Heads in the output layer of the model.
     """
     # register the datasets

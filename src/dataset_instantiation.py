@@ -1,5 +1,5 @@
 from dataset import ImagesDataset
-from data_tools import create_record, path_fixer
+from utils import create_record, path_fixer
 from typing import Callable
 from tqdm.auto import tqdm
 import itertools

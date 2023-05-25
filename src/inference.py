@@ -10,7 +10,7 @@ from tqdm import tqdm
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from data_tools import path_fixer
+from utils import path_fixer
 from detectron2.utils.visualizer import Visualizer
 import argparse
 from training_utils import get_cfg

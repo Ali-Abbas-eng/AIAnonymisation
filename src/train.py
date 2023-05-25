@@ -1,9 +1,7 @@
 import warnings
 from data_tools import register_dataset
 from training_utils import get_cfg, Trainer
-import os
 import argparse
-from evaluation import evaluate
 
 
 def train(network_base_name: str,
@@ -17,7 +15,8 @@ def train(network_base_name: str,
           decay_freq: int,
           decay_gamma: float,
           min_learning_rate: float,
-          freeze_at: int):
+          freeze_at: int,
+          roi_heads: int):
     """
     Trains a model using the specified configurations.
     :param network_base_name: The URL to the YAML configuration file.
@@ -30,10 +29,11 @@ def train(network_base_name: str,
     :param output_directory: str, the directory to which training results will be saved.
     :param decay_freq: int, the frequency of decaying the learning rate.
     :param decay_gamma: float, decay step for the learning rate scheduler
-    :param eval_device: str, the device on which evaluation of the model will be done, default 'cuda' (recommended).
     :param min_learning_rate: float, the minimum value for the learning rate.
     :param freeze_at: int, index of the last layer to be frozen in the sequence of frozen layer (0 means freeze all but the
     output layer, -1 means train all).
+    :param roi_heads: int, number of Region Of Interest Heads in the output layer of the model.
+    :param roi_heads: int, number of Region Of Interest Heads in the output layer of the model.
     """
     # register the datasets
     train_sets = [file.split('/')[-1].replace('.json', '') for file in train_files]
@@ -54,7 +54,7 @@ def train(network_base_name: str,
                              batch_size=batch_size,
                              output_directory=output_directory,
                              min_learning_rate=min_learning_rate,
-                             freeze_at=freeze_at)
+                             roi_heads=roi_heads)
 
     # Create trainer object with configurations
     trainer = Trainer(configurations)

@@ -64,7 +64,8 @@ def get_cfg(network_base_name: str,
             eval_freq: int = 20_000,
             batch_size: int = 2,
             decay_freq: int = 1000,
-            decay_gamma: float = .9):
+            decay_gamma: float = .9,
+            roi_heads: int = 256):
     """
     Generates a configuration object for a network.
 
@@ -122,8 +123,8 @@ def get_cfg(network_base_name: str,
     # Set the number of classes
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
 
-    # Set the number of Regions of Interest to a lower number than the default (512).
-    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 512
+    # Set the number of Regions of Interest
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = roi_heads
 
     # Create the output directory if it doesn't exist
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)

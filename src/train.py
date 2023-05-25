@@ -16,7 +16,6 @@ def train(network_base_name: str,
           output_directory: str,
           decay_freq: int,
           decay_gamma: float,
-          eval_device: str,
           min_learning_rate: float,
           freeze_at: int):
     """
@@ -86,6 +85,7 @@ if __name__ == '__main__':
     parser.add_argument('--eval_device', type=str, default='cuda')
     parser.add_argument('--min_learning_rate', type=float, default=1e-5)
     parser.add_argument('--freeze_at', type=int, default=0)
+    parser.add_argument('--roi_heads', type=int, default=256)
 
     args = vars(parser.parse_args())
     with warnings.catch_warnings():

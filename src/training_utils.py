@@ -64,8 +64,7 @@ def get_cfg(network_base_name: str,
             eval_freq: int = 20_000,
             batch_size: int = 2,
             decay_freq: int = 1000,
-            decay_gamma: float = .9,
-            freeze_at: int = 50):
+            decay_gamma: float = .9):
     """
     Generates a configuration object for a network.
 
@@ -73,15 +72,15 @@ def get_cfg(network_base_name: str,
     :param yaml_url: str, The URL of the YAML configuration file.
     :param train_datasets: tuple, A tuple of training datasets.
     :param test_datasets: tuple, A tuple of testing datasets.
+    :param min_learning_rate: float, the minimum value of the learning rate at which we stop learning rate decay.
     :param initial_learning_rate: float, The initial learning rate. Defaults to 0.00025.
     :param train_steps: int, The number of training steps. Defaults to 5000.
     :param eval_freq: int, The evaluation frequency. Defaults to 5000.
     :param batch_size: int, The batch size. Defaults to 2.
     :param output_directory: str, the directory to which training results will be saved.
+    :param decay_freq: int, the interval of the learning rate decay.
     :param decay_gamma: float, decay step for the learning rate scheduler
     :param output_directory: str, The output directory. Defaults to 'output'.
-    :param freeze_at: int, index of the last layer to be frozen in the sequence of frozen layer (0 means freeze all but
-     the output layer, -1 means train all).
 
     Returns:
         cfg: A configuration object for the network.
@@ -119,8 +118,6 @@ def get_cfg(network_base_name: str,
 
     # Set the initial learning rate
     cfg.SOLVER.BASE_LR = initial_learning_rate
-#     cfg.SOLVER.OPTIMIZER = {'lr': initial_learning_rate}
-#     cfg.SOLVER.OVERRIDES = {'base_lr': initial_learning_rate}
 
     # Set the number of classes
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
@@ -133,12 +130,21 @@ def get_cfg(network_base_name: str,
 
     # set learning rate decay options
     cfg.SOLVER.GAMMA = decay_gamma
-    
+
+    # Calculate the number of times learning rate decay will be applied
     decay_steps = train_steps // decay_freq
+    # Initialise a list which will hold the step indexes at which decay will happen
     solver_steps = []
+
+    # For each time the learning rate will be decayed
     for i in range(decay_steps):
+        # In case the decay won't decrease the learning rate to a lower value than the minimum acceptable value
         if initial_learning_rate * decay_gamma ** i > min_learning_rate:
+            # Add the step index to the list of decay steps
             solver_steps.append(decay_freq * (i + 1))
-    
+
+    # Assign the calculated decay steps to the proper configuration node attribute
     cfg.SOLVER.STEPS = tuple(solver_steps)
+
+    # Return the final configuration node
     return cfg

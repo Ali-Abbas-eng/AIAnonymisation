@@ -357,7 +357,7 @@ if __name__ == '__main__':
                                         argument and the previous one (splits) for each json file you provided earlier,
                                         provide the proportion of the dataset held in that particular file
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(usage=usage)
     parser.add_argument('--dataset_name', type=str, required=True, help=f'one of {datasets.keys()}')
     parser.add_argument('--download', action='store_true', help='Use if you do not have the dataset on your device')
     parser.add_argument('--extract', action='store_true', help='User if you do have the dataset in compressed format')

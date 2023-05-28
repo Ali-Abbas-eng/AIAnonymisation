@@ -366,3 +366,5 @@ if __name__ == '__main__':
                                                                      'the size of each split')
     args = vars(parser.parse_args())
     main(**args)
+
+    print('test')

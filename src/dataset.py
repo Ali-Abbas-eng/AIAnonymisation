@@ -1,4 +1,4 @@
-from data_tools import download, extract, modify_record
+from utils import download, extract, modify_record
 import os
 import json
 from typing import Union, Callable
@@ -106,7 +106,11 @@ class ImagesDataset:
             for file in files:
                 # noinspection PyTypeChecker
                 # extract the file (if it's one of the supported file types)
-                extract(path=file, output_directory=self.path)
+                try:
+                    extract(path=file, output_directory=self.path)
+                except KeyError:
+                    print(f'Looks like one of the contents of the directory {self.cache_directory} is not supported, '
+                          f'the file that threw the exception was {file}')
             # If the instantiated object has auto_remove_cache == True
             if self.auto_remove_cache:
                 # Delete the files in the Cache directory

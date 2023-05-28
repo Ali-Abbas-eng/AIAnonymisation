@@ -14,52 +14,8 @@ import gdown
 import zipfile
 import tarfile
 import lzma
-
-
-CELEB_A_DATASET_DIRECTORY = os.path.join('data', 'raw', 'CelebA')
-CELEB_A_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CelebA', 'img_celeba')
-CELEB_A_ANNOTATIONS_FILE = os.path.join('data', 'raw', 'CelebA', 'anno', 'list_bbox_celeba.txt')
-CELEB_A_INFORMATION_FILE = os.path.join('data', 'raw', 'CelebA', 'celeba_info.json')
-
-WIDER_FACE_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'WIDER_FACE')
-WIDER_FACE_IMAGES_DIRECTORY_TRAIN = os.path.join('data', 'raw', 'WIDER_FACE', 'WIDER_train', 'images')
-WIDER_FACE_ANNOTATIONS_FILE_TRAIN = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face_split',
-                                                 'wider_face_train_bbx_gt.txt')
-WIDER_FACE_IMAGES_DIRECTORY_VALID = os.path.join('data', 'raw', 'WIDER_FACE', 'WIDER_val', 'images')
-WIDER_FACE_ANNOTATIONS_FILE_VALID = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face_split',
-                                                 'wider_face_val_bbx_gt.txt')
-
-WIDER_FACE_INFORMATION_FILE = os.path.join('data', 'raw', 'WIDER_FACE', 'wider_face.json')
-
-CELEB_A_NUM_CANDIDATES = {
-    'train': 160_000,
-    'test': 10000,
-    'val': 5000
-}
-
-# WIDER_FACE_NUM_CANDIDATES = {
-#     'train': 10_0,
-#     'test': 1000,
-#     'val': 1000
-# }
-
-CCPD_NUM_CANDIDATES = {
-    'train': 160_000,
-    'test': 10000,
-    'val': 5000
-}
-
-FINAL_DATA_PATH = 'data'
-IMAGES_DATA_DIRECTORY = os.path.join(FINAL_DATA_PATH, 'images')
-
-DATASET_INFO_FILE_TRAIN = os.path.join(FINAL_DATA_PATH, 'train.json')
-DATASET_INFO_FILE_TEST = os.path.join(FINAL_DATA_PATH, 'test.json')
-DATASET_INFO_FILE_VAL = os.path.join(FINAL_DATA_PATH, 'val.json')
-
-CCPD_IMAGES_DIRECTORY = os.path.join('data', 'raw', 'CCPD2019')
-CCPD_INFORMATION_FILE = os.path.join('data', 'raw', 'CCPD2019', 'CCPD2019.json')
-
-IMAGE_SIZE = (360, 580)
+from detectron2.config import get_cfg as base_configurations
+from detectron2.model_zoo import get_config_file, get_checkpoint_url
 
 
 def pre_process_data(image_path: str, bounding_boxes: list) -> list:
@@ -602,3 +558,102 @@ def extract(path: Union[str, os.PathLike], output_directory: Union[str, os.PathL
         except PermissionError:
             # Most likely it's a duplicated file trying to be written again
             pass
+
+
+def get_cfg(network_base_name: str,
+            yaml_url: str,
+            train_datasets: tuple,
+            test_datasets: tuple,
+            output_directory: str,
+            min_learning_rate: float = 1e-7,
+            initial_learning_rate: float = 1e-5,
+            train_steps: int = 100_000,
+            eval_freq: int = 20_000,
+            batch_size: int = 2,
+            decay_freq: int = 1000,
+            decay_gamma: float = .9,
+            roi_heads: int = 256):
+    """
+    Generates a configuration object for a network.
+
+    :param network_base_name: str, The base name of the network.
+    :param yaml_url: str, The URL of the YAML configuration file.
+    :param train_datasets: tuple, A tuple of training datasets.
+    :param test_datasets: tuple, A tuple of testing datasets.
+    :param min_learning_rate: float, the minimum value of the learning rate at which we stop learning rate decay.
+    :param initial_learning_rate: float, The initial learning rate. Defaults to 0.00025.
+    :param train_steps: int, The number of training steps. Defaults to 5000.
+    :param eval_freq: int, The evaluation frequency. Defaults to 5000.
+    :param batch_size: int, The batch size. Defaults to 2.
+    :param output_directory: str, the directory to which training results will be saved.
+    :param decay_freq: int, the interval of the learning rate decay.
+    :param decay_gamma: float, decay step for the learning rate scheduler
+    :param output_directory: str, The output directory. Defaults to 'output'.
+    :param roi_heads: int, number of Region Of Interest Heads in the output layer of the model.
+
+    Returns:
+        cfg: A configuration object for the network.
+    """
+    # Get the base configurations
+    cfg = base_configurations()
+
+    # Merge the configurations from the YAML file
+    cfg.merge_from_file(get_config_file(yaml_url))
+
+    # Set the output directory
+    cfg.OUTPUT_DIR = os.path.join(output_directory, network_base_name)
+
+    # Set the weights path
+    cfg.MODEL.WEIGHTS = os.path.join(cfg.OUTPUT_DIR, 'model_final.pth')
+    if not os.path.exists(cfg.MODEL.WEIGHTS):
+        cfg.MODEL.WEIGHTS = get_checkpoint_url(yaml_url)
+
+    # Set the training and testing datasets
+    cfg.DATASETS.TRAIN = train_datasets
+    cfg.DATASETS.TEST = test_datasets
+
+    # Set the batch size
+    cfg.SOLVER.IMS_PER_BATCH = batch_size
+
+    # Set the checkpoint and logging frequencies
+    cfg.SOLVER.CHECKPOINT_PERIOD = eval_freq
+    cfg.SOLVER.LOGGER_PERIOD = eval_freq
+
+    # Set the maximum number of training steps
+    cfg.SOLVER.MAX_ITER = train_steps
+
+    # Set the evaluation frequency
+    cfg.TEST.EVAL_PERIOD = eval_freq
+
+    # Set the initial learning rate
+    cfg.SOLVER.BASE_LR = initial_learning_rate
+
+    # Set the number of classes
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2
+
+    # Set the number of Regions of Interest
+    cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = roi_heads
+
+    # Create the output directory if it doesn't exist
+    os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
+
+    # set learning rate decay options
+    cfg.SOLVER.GAMMA = decay_gamma
+
+    # Calculate the number of times learning rate decay will be applied
+    decay_steps = train_steps // decay_freq
+    # Initialise a list which will hold the step indexes at which decay will happen
+    solver_steps = []
+
+    # For each time the learning rate will be decayed
+    for i in range(decay_steps):
+        # In case the decay won't decrease the learning rate to a lower value than the minimum acceptable value
+        if initial_learning_rate * decay_gamma ** i > min_learning_rate:
+            # Add the step index to the list of decay steps
+            solver_steps.append(decay_freq * (i + 1))
+
+    # Assign the calculated decay steps to the proper configuration node attribute
+    cfg.SOLVER.STEPS = tuple(solver_steps)
+
+    # Return the final configuration node
+    return cfg

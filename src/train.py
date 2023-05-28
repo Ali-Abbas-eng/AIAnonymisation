@@ -1,9 +1,56 @@
 import warnings
-from data_tools import register_dataset
-from training_utils import get_cfg, Trainer
-import os
+from utils import register_dataset, get_cfg
 import argparse
-from evaluation import evaluate
+import os
+from detectron2.engine.defaults import DefaultTrainer
+from detectron2.evaluation import COCOEvaluator
+from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
+import torch
+
+
+class Trainer(DefaultTrainer):
+    """
+    A custom trainer class that inherits the DefaultTrainer class from Detectron2.
+    """
+
+    @classmethod
+    def build_evaluator(cls, cfg, dataset_name, output_folder: str = None):
+        """
+        A class method that builds a COCOEvaluator object for evaluation.
+
+        Parameters:
+            cfg (CfgNode): A configuration object.
+            dataset_name (str): The name of the dataset to be evaluated.
+            output_folder (str): The directory to save evaluation results. If None, it is saved in cfg.OUTPUT_DIR/eval.
+
+        Returns:
+            evaluator (COCOEvaluator): A COCOEvaluator object for evaluation.
+        """
+
+        # If output folder is not provided, create a new one in cfg.OUTPUT_DIR/eval
+        if output_folder is None:
+            output_folder = os.path.join(cfg.OUTPUT_DIR, 'eval')
+        os.makedirs(output_folder, exist_ok=True)
+
+        # Create a COCOEvaluator object for evaluation
+        evaluator = COCOEvaluator(dataset_name, cfg, False, output_folder)
+
+        return evaluator
+
+    @classmethod
+    def build_optimizer(cls, cfg, model):
+        params = get_default_optimizer_params(
+            model,
+            base_lr=cfg.SOLVER.BASE_LR,
+            weight_decay_norm=cfg.SOLVER.WEIGHT_DECAY_NORM,
+            bias_lr_factor=cfg.SOLVER.BIAS_LR_FACTOR,
+            weight_decay_bias=cfg.SOLVER.WEIGHT_DECAY_BIAS,
+        )
+        return maybe_add_gradient_clipping(cfg, torch.optim.Adam)(
+            params,
+            lr=cfg.SOLVER.BASE_LR,
+            weight_decay=cfg.SOLVER.WEIGHT_DECAY,
+        )
 
 
 def train(network_base_name: str,
@@ -16,9 +63,9 @@ def train(network_base_name: str,
           output_directory: str,
           decay_freq: int,
           decay_gamma: float,
-          eval_device: str,
           min_learning_rate: float,
-          freeze_at: int):
+          freeze_at: int,
+          roi_heads: int):
     """
     Trains a model using the specified configurations.
     :param network_base_name: The URL to the YAML configuration file.
@@ -31,10 +78,10 @@ def train(network_base_name: str,
     :param output_directory: str, the directory to which training results will be saved.
     :param decay_freq: int, the frequency of decaying the learning rate.
     :param decay_gamma: float, decay step for the learning rate scheduler
-    :param eval_device: str, the device on which evaluation of the model will be done, default 'cuda' (recommended).
     :param min_learning_rate: float, the minimum value for the learning rate.
     :param freeze_at: int, index of the last layer to be frozen in the sequence of frozen layer (0 means freeze all but the
     output layer, -1 means train all).
+    :param roi_heads: int, number of Region Of Interest Heads in the output layer of the model.
     """
     # register the datasets
     train_sets = [file.split('/')[-1].replace('.json', '') for file in train_files]
@@ -55,24 +102,21 @@ def train(network_base_name: str,
                              batch_size=batch_size,
                              output_directory=output_directory,
                              min_learning_rate=min_learning_rate,
-                             freeze_at=freeze_at)
+                             roi_heads=roi_heads)
 
-#     [visualize_sample(file, show=False, save_path=file.replace('json', 'png'))
-#      for file in [*train_files, *valid_files]]
     # Create trainer object with configurations
     trainer = Trainer(configurations)
+
+    for parameter in trainer.model.parameters():
+        parameter.requires_grad = False
+
+    for parameter in trainer.model.roi_heads.parameters():
+        parameter.requires_grad = True
 
     # Resume training if possible
     trainer.resume_or_load(True)
 
-    # Train model
     trainer.train()
-
-    evaluate(network=network_base_name,
-             model_weights=os.path.join(output_directory, network_base_name, 'model_final.pth'),
-             test_data_file=os.path.join('data', 'test.json'),
-             output_dir=os.path.join(output_directory, network_base_name, 'test'),
-             device=eval_device)
 
 
 if __name__ == '__main__':
@@ -88,9 +132,9 @@ if __name__ == '__main__':
     parser.add_argument('--train_steps', type=int, default=50_000)
     parser.add_argument('--eval_steps', type=int, default=10_000)
     parser.add_argument('--batch_size', type=int, default=2)
-    parser.add_argument('--eval_device', type=str, default='cuda')
     parser.add_argument('--min_learning_rate', type=float, default=1e-5)
     parser.add_argument('--freeze_at', type=int, default=0)
+    parser.add_argument('--roi_heads', type=int, default=256)
 
     args = vars(parser.parse_args())
     with warnings.catch_warnings():

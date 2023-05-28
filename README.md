@@ -41,7 +41,7 @@ Select the model with the highest AP.
 ## Implementation Details
 
 ### Environment Setup
-    `conda create -n myenv --file package-list.txt`
+    `conda create -n myenv --file requirements.txt`
 
 ### Dataset Selection
 Datasets are available on Google Drive, in case you want to download the datasets manually (or if gdown raised an exception for overusing the API) you can refer to the dataset links available in the references.

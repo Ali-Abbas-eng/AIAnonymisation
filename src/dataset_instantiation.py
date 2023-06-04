@@ -128,20 +128,29 @@ def get_celeba_dataset():
     return celeba_default
 
 
-def get_wider_face_dataset():
+def get_wider_face_dataset(split: str = 'train'):
+    """
+    Returns a split of the WIDER FACE dataset
+    Args:
+        split: str, the split of the dataset to be retrieved.
+
+    Returns:
+        List[dict], list of dictionaries in COCO format
+
+    """
     def generate_dataset_registration_info(data_directory: str or os.PathLike,
-                                           annotation_files: str or os.PathLike):
+                                           annotation_file: str or os.PathLike):
         """
         This function generates dataset registration information from the annotations file and the data directory.
 
         Args:
             data_directory (str or os.PathLike): The directory containing the data.
-            annotation_files (list), list of paths to the annotation files
+            annotation_file (str), path to the annotation file
 
         Returns:
             dataset_dicts (list): A list of dictionaries containing the dataset registration information.
         """
-        annotations = open(annotation_files[0], 'r').read() + '\n' + open(annotation_files[1], 'r').read()
+        annotations = open(annotation_file, 'r').read()
         # Read the annotations file and split it by new line
         annotations = annotations.split('\n')
 
@@ -181,17 +190,19 @@ def get_wider_face_dataset():
         'WIDER_val.zip': 'https://drive.google.com/uc?id=1wb5jtFTHd9yBZpYpUVO50hb5ofa2NOm3',
         'wider_face_split.zip': 'https://drive.google.com/uc?id=1KcRtgcLprJBnhKpkEkC-FwBdXrdb_nsv',
     }
-
     wider_face_default = ImagesDataset(name='wider_face',
                                        path=os.path.join('data', 'raw', 'WiderFace'),
                                        coco_file=os.path.join('data', 'raw', 'wider_face.json'),
                                        urls=urls,
                                        cache_directory=os.path.join('data', 'cache', 'WiderFace'),
                                        )
+    annotations_file = os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_train_bbx_gt.txt')
+    if split == 'val':
+        annotations_file = os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_val_bbx_gt.txt')
+
     wider_face_default.generate_dataset_registration_info_params = {
         'data_directory': os.path.join('data', 'raw', 'WiderFace'),
-        'annotation_files': [os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_train_bbx_gt.txt'),
-                             os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_val_bbx_gt.txt')]
+        'annotation_file':annotations_file
     }
     wider_face_default.registration_info_generator = generate_dataset_registration_info
     return wider_face_default

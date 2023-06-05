@@ -338,8 +338,9 @@ datasets = {
 def main(dataset_name: str,
          download: bool,
          extract: bool,
-         splits: list = None,
-         proportions: list = None):
+         splits: list,
+         proportions: list,
+         clear_cache: bool):
     assert dataset_name.lower() in datasets.keys(), f'name not found,' \
                                                     f' expected one of {datasets.keys()} got {dataset_name}'
     dataset: ImagesDataset = datasets[dataset_name]
@@ -359,24 +360,32 @@ def main(dataset_name: str,
 
 
 if __name__ == '__main__':
+    dataset_name_help = f'dataset_name <name of the dataset which can be one of {datasets.keys()}>'
+    download_help = "download (optional) use if you don't have the dataset on your device"
+    extract_help = 'extract (optional) use if you have the dataset only in compressed format'
+    splits_help = 'splits (optional) paths to JSON files in which data splits information will be saved in COCO format'
+    proportions_help = 'proportions (optional) use to determine the proportion of each split w.r.t original dataset'
+    clear_cache_help = 'clear_cache (optional), use this flag to delete downloaded dataset files after extraction'
+    cache_dir_help = 'cache_dir (optional), specify where to download dataset files, default "data/cache/'
+    data_dir_help = 'data_dir (optional), specify where to extract/find the datasets, default "data/raw"'
     usage = f"""
-    python src/dataset_instantiation.py --dataset_name <name of the dataset which can be one of {datasets.keys()}>
-                                        --download (optional) use if you don't have the dataset on your device
-                                        --extract (optional) use if you have the dataset only in compressed format
-                                        --splits (optional) multiple values representing the paths to the new json 
-                                                                    format representing the new splits of the dataset
-                                        --proportions (optional) if you want to split the data you MUST provide this 
-                                        argument and the previous one (splits) for each json file you provided earlier,
-                                        provide the proportion of the dataset held in that particular file
+    python src/dataset_instantiation.py --{dataset_name_help}\n
+                                        --{download_help}\n
+                                        --{extract_help}\n
+                                        --{splits_help}\n
+                                        --{proportions_help}\n
+                                        --{clear_cache_help}\n
+                                        --{cache_dir_help}\n
+                                        --{data_dir_help}\n
     """
     parser = argparse.ArgumentParser(usage=usage)
-    parser.add_argument('--dataset_name', type=str, required=True, help=f'one of {datasets.keys()}')
-    parser.add_argument('--download', action='store_true', help='Use if you do not have the dataset on your device')
-    parser.add_argument('--extract', action='store_true', help='User if you do have the dataset in compressed format')
-    parser.add_argument('--splits', nargs='+', help='Provide a list of json files to store splits of the dataset')
-    parser.add_argument('--proportions', nargs='+', type=float, help='In case you want to split the data provide '
-                                                                     'the size of each split')
+    parser.add_argument('--dataset_name', type=str, required=True, help=dataset_name_help)
+    parser.add_argument('--download', action='store_true', help=download_help)
+    parser.add_argument('--extract', action='store_true', help=extract_help)
+    parser.add_argument('--splits', nargs='+', help=splits_help)
+    parser.add_argument('--proportions', nargs='+', type=float, default=None, help=proportions_help)
+    parser.add_argument('--clear_cache', action='store_true', help=clear_cache_help)
+    parser.add_argument('--cache_dir', default=os.path.join('data', 'cache'), help=cache_dir_help)
+    parser.add_argument('--data_dir', default=os.path.join('data', 'raw'), help=data_dir_help)
     args = vars(parser.parse_args())
     main(**args)
-
-    print('test')

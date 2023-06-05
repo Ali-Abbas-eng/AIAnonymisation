@@ -192,7 +192,7 @@ def get_wider_face_dataset(split: str = 'train'):
     }
     wider_face_default = ImagesDataset(name='wider_face',
                                        path=os.path.join('data', 'raw', 'WiderFace'),
-                                       coco_file=os.path.join('data', 'raw', 'wider_face.json'),
+                                       coco_file=os.path.join('data', 'raw', 'wider_face_train.json'),
                                        urls=urls,
                                        cache_directory=os.path.join('data', 'cache', 'WiderFace'),
                                        )
@@ -202,7 +202,7 @@ def get_wider_face_dataset(split: str = 'train'):
 
     wider_face_default.generate_dataset_registration_info_params = {
         'data_directory': os.path.join('data', 'raw', 'WiderFace'),
-        'annotation_file':annotations_file
+        'annotation_file': annotations_file
     }
     wider_face_default.registration_info_generator = generate_dataset_registration_info
     return wider_face_default

@@ -128,7 +128,7 @@ def get_celeba_dataset():
     return celeba_default
 
 
-def get_wider_face_dataset(split: str = 'train'):
+def get_wider_face_dataset(split):
     """
     Returns a split of the WIDER FACE dataset
     Args:
@@ -192,7 +192,7 @@ def get_wider_face_dataset(split: str = 'train'):
     }
     wider_face_default = ImagesDataset(name='wider_face',
                                        path=os.path.join('data', 'raw', 'WiderFace'),
-                                       coco_file=os.path.join('data', 'raw', 'wider_face_train.json'),
+                                       coco_file=os.path.join('data', 'raw', f'wider_face_{split}.json'),
                                        urls=urls,
                                        cache_directory=os.path.join('data', 'cache', 'WiderFace'),
                                        )
@@ -340,10 +340,15 @@ def main(dataset_name: str,
          extract: bool,
          splits: list,
          proportions: list,
-         clear_cache: bool):
+         clear_cache: bool,
+         cache_dir: str or os.PathLike,
+         data_dir: str or os.PathLike):
     assert dataset_name.lower() in datasets.keys(), f'name not found,' \
                                                     f' expected one of {datasets.keys()} got {dataset_name}'
     dataset: ImagesDataset = datasets[dataset_name]
+    dataset.cache_directory = cache_dir
+    dataset.auto_remove_cache = clear_cache
+    dataset.path = data_dir
     if download:
         dataset.download_dataset_files()
     if extract and not download:
@@ -385,7 +390,7 @@ if __name__ == '__main__':
     parser.add_argument('--splits', nargs='+', help=splits_help)
     parser.add_argument('--proportions', nargs='+', type=float, default=None, help=proportions_help)
     parser.add_argument('--clear_cache', action='store_true', help=clear_cache_help)
-    parser.add_argument('--cache_dir', default=os.path.join('data', 'cache'), help=cache_dir_help)
+    parser.add_argument('--cache_dir', default=None, help=cache_dir_help)
     parser.add_argument('--data_dir', default=os.path.join('data', 'raw'), help=data_dir_help)
     args = vars(parser.parse_args())
     main(**args)

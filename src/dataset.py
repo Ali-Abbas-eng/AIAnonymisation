@@ -4,7 +4,7 @@ import json
 from typing import Union, Callable
 from os import PathLike
 import shutil
-from random import shuffle
+import random
 
 
 class ImagesDataset:
@@ -12,6 +12,23 @@ class ImagesDataset:
     Encapsulation of the Dataset classes, all dataset used in this project MUST use this class as a super class, or
     ideally, instantiate an object from this class with the dataset-specific information as parameters
     """
+
+    @property
+    def path(self):
+        return self.__path
+
+    @path.setter
+    def path(self, path):
+        self.__path = path
+        self.coco_file = os.path.join(path, self.name + '.json')
+
+    @property
+    def coco_file(self):
+        return self.__coco_file
+
+    @coco_file.setter
+    def coco_file(self, path):
+        self.__coco_file = path
 
     def __init__(self,
                  name: str,
@@ -66,7 +83,7 @@ class ImagesDataset:
         if self.ready_to_use:
             data_list = json.load(open(self.coco_file))
             if self.shuffle:
-                shuffle(data_list)
+                random.shuffle(data_list)
 
             # read the file, return the content
             return data_list

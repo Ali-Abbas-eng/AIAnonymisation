@@ -329,7 +329,8 @@ datasets = {
     'celeba': get_celeba_dataset(),
     'ccpd2019': get_ccpd2019_dataset(),
     'fddb': get_fddb_dataset(),
-    'wider_face': get_wider_face_dataset()
+    'wider_face_train': get_wider_face_dataset(split='train'),
+    'wider_face_val': get_wider_face_dataset(split='val')
 
 }
 

@@ -1,5 +1,5 @@
 from dataset import ImagesDataset
-from utils import create_record, path_fixer
+from utils import create_record, path_fixer, visualize_sample
 from typing import Callable
 from tqdm.auto import tqdm
 import itertools
@@ -186,22 +186,23 @@ def get_wider_face_dataset(split):
         return dataset_dicts
 
     urls = {
-        'WIDER_train.zip': 'https://drive.google.com/uc?id=1w6lLpq6Sh10okRA6bSBqcDEDb-2fK_nc',
-        'WIDER_val.zip': 'https://drive.google.com/uc?id=1wb5jtFTHd9yBZpYpUVO50hb5ofa2NOm3',
         'wider_face_split.zip': 'https://drive.google.com/uc?id=1KcRtgcLprJBnhKpkEkC-FwBdXrdb_nsv',
     }
-    wider_face_default = ImagesDataset(name='wider_face',
-                                       path=os.path.join('data', 'raw', 'WiderFace'),
-                                       coco_file=os.path.join('data', 'raw', f'wider_face_{split}.json'),
-                                       urls=urls,
-                                       cache_directory=os.path.join('data', 'cache', 'WiderFace'),
-                                       )
+    if split == 'train':
+        urls['WIDER_train.zip'] = 'https://drive.google.com/uc?id=1w6lLpq6Sh10okRA6bSBqcDEDb-2fK_nc'
+    else:
+        urls['WIDER_val.zip'] = 'https://drive.google.com/uc?id=1wb5jtFTHd9yBZpYpUVO50hb5ofa2NOm3'
+    wider_face_default = ImagesDataset(name=f'wider_face_{split}',
+                                       path=os.path.join('data', 'raw', f'WiderFace{split.capitalize()}'),
+                                       coco_file=os.path.join('data', 'raw', f'WiderFace{split.capitalize()}.json'),
+                                       urls=urls)
+
     annotations_file = os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_train_bbx_gt.txt')
     if split == 'val':
         annotations_file = os.path.join(wider_face_default.path, 'wider_face_split', 'wider_face_val_bbx_gt.txt')
 
     wider_face_default.generate_dataset_registration_info_params = {
-        'data_directory': os.path.join('data', 'raw', 'WiderFace'),
+        'data_directory': wider_face_default.path,
         'annotation_file': annotations_file
     }
     wider_face_default.registration_info_generator = generate_dataset_registration_info
@@ -345,12 +346,13 @@ def main(dataset_name: str,
          data_dir: str or os.PathLike):
     assert dataset_name.lower() in datasets.keys(), f'name not found,' \
                                                     f' expected one of {datasets.keys()} got {dataset_name}'
+
     dataset: ImagesDataset = datasets[dataset_name]
     dataset.name = dataset_name
     dataset.cache_directory = dataset.cache_directory if dataset.cache_directory \
         else os.path.join('data', 'cache', dataset_name.upper())
     dataset.auto_remove_cache = clear_cache
-    dataset.path = data_dir
+    # dataset.path = data_dir
     if download:
         dataset.download_dataset_files()
     if extract and not download:
@@ -364,6 +366,8 @@ def main(dataset_name: str,
         assert type(proportions) == list and len(proportions) == len(splits),\
             f'splits and proportions must be lists of the same length'
         dataset.split({splits[i]: proportions[i] for i in range(len(splits))})
+
+    visualize_sample(dataset.coco_file, 8, False, os.path.join(dataset.path, 'sample.png'))
 
 
 if __name__ == '__main__':
@@ -393,6 +397,6 @@ if __name__ == '__main__':
     parser.add_argument('--proportions', nargs='+', type=float, default=None, help=proportions_help)
     parser.add_argument('--clear_cache', action='store_true', help=clear_cache_help)
     parser.add_argument('--cache_dir', default=None, help=cache_dir_help)
-    parser.add_argument('--data_dir', default=os.path.join('data', 'raw'), help=data_dir_help)
+    parser.add_argument('--data_dir', default=None, help=data_dir_help)
     args = vars(parser.parse_args())
     main(**args)

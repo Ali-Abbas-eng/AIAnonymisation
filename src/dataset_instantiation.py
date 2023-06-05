@@ -346,7 +346,8 @@ def main(dataset_name: str,
     assert dataset_name.lower() in datasets.keys(), f'name not found,' \
                                                     f' expected one of {datasets.keys()} got {dataset_name}'
     dataset: ImagesDataset = datasets[dataset_name]
-    dataset.cache_directory = cache_dir if cache_dir else os.path.join('data', 'cache', dataset_name.upper())
+    dataset.cache_directory = dataset.cache_directory if dataset.cache_directory \
+        else os.path.join('data', 'cache', dataset_name.upper())
     dataset.auto_remove_cache = clear_cache
     dataset.path = data_dir
     if download:

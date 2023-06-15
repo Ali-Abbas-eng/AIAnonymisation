@@ -100,6 +100,7 @@ def train(network_base_name: str,
                              train_steps=train_steps,
                              eval_freq=eval_steps,
                              batch_size=batch_size,
+                             freeze_at=freeze_at,
                              output_directory=output_directory,
                              min_learning_rate=min_learning_rate,
                              roi_heads=roi_heads)
@@ -107,13 +108,6 @@ def train(network_base_name: str,
     # Create trainer object with configurations
     trainer = Trainer(configurations)
 
-    for parameter in trainer.model.parameters():
-        parameter.requires_grad = False
-
-    for parameter in trainer.model.roi_heads.parameters():
-        parameter.requires_grad = True
-
-    # Resume training if possible
     trainer.resume_or_load(True)
 
     trainer.train()

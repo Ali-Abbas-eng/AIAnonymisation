@@ -569,6 +569,7 @@ def get_cfg(network_base_name: str,
             initial_learning_rate: float = 1e-5,
             train_steps: int = 100_000,
             eval_freq: int = 20_000,
+            freeze_at: int = 0,
             batch_size: int = 2,
             decay_freq: int = 1000,
             decay_gamma: float = .9,
@@ -633,6 +634,9 @@ def get_cfg(network_base_name: str,
 
     # Set the number of Regions of Interest
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = roi_heads
+
+    # Set the level of frozen layer
+    cfg.MODEL.FREEZE_AT = freeze_at
 
     # Create the output directory if it doesn't exist
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)

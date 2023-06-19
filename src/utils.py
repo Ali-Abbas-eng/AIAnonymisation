@@ -585,6 +585,7 @@ def get_cfg(network_base_name: str,
     :param initial_learning_rate: float, The initial learning rate. Defaults to 0.00025.
     :param train_steps: int, The number of training steps. Defaults to 5000.
     :param eval_freq: int, The evaluation frequency. Defaults to 5000.
+    :param freeze_at: int, The reverse index of the first layer which will NOT be frozen.
     :param batch_size: int, The batch size. Defaults to 2.
     :param output_directory: str, the directory to which training results will be saved.
     :param decay_freq: int, the interval of the learning rate decay.

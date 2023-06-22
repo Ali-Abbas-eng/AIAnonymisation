@@ -78,6 +78,7 @@ def get_info(data_directory: Union[AnyStr, PathLike]) -> None:
     # initialise an empty list of records
     records = []
 
+    # noinspection PyTypeChecker
     # iterate through the list of files (images)
     for index, file in tqdm(enumerate(files), total=len(files), desc='Generating Information from YOLO Plate dataset'):
         # get the image path

@@ -439,7 +439,7 @@ def path_fixer(path: str) -> str:
     # Replace backslashes with the temporary separator symbol ('$')
     path = path.replace('\\', '$')
 
-    # Replace the temporary separator symbol ('$') with the correct separator for the operating system
+    # Replace the temporary separator symbol '$' with the correct separator for the operating system
     path = path.replace('$', os.path.sep)
 
     return path

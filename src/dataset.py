@@ -1,6 +1,4 @@
 import copy
-
-import numpy as np
 import torch
 from utils import download, extract, modify_record
 import os
@@ -12,7 +10,7 @@ import random
 from utils import recompute_bounding_boxes
 from detectron2.data import transforms
 from detectron2.data import detection_utils
-from typing import List, Union
+from typing import Union
 
 
 class ImagesDataset:
@@ -210,10 +208,10 @@ def custom_data_mapper(dataset_dict):
     aug_input = transforms.AugInput(image)
 
     # Create the transform
-    transform = transforms.ResizeShortestEdge(shortest_edge_range)(aug_input)
+    transforms.ResizeShortestEdge(shortest_edge_range)(aug_input)
 
     # Get the image
-    image = torch.from_numpy(aug_input.image.transpose(2, 0, 1).copy())
+    image = torch.from_numpy(aug_input.image.transpose((2, 0, 1)).copy())
 
     # Save the new image size
     new_size = image.shape[1:3]

@@ -8,7 +8,6 @@ from detectron2.data import build_detection_train_loader
 from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
 from dataset import custom_data_mapper
 import torch
-from detectron2.data import transforms
 from utils import path_fixer
 
 
@@ -50,6 +49,7 @@ class Trainer(DefaultTrainer):
             bias_lr_factor=cfg.SOLVER.BIAS_LR_FACTOR,
             weight_decay_bias=cfg.SOLVER.WEIGHT_DECAY_BIAS,
         )
+        # noinspection PyArgumentList
         return maybe_add_gradient_clipping(cfg, torch.optim.Adam)(
             params,
             lr=cfg.SOLVER.BASE_LR,
@@ -88,8 +88,7 @@ def train(network_base_name: str,
     :param decay_freq: int, the frequency of decaying the learning rate.
     :param decay_gamma: float, decay step for the learning rate scheduler
     :param min_learning_rate: float, the minimum value for the learning rate.
-    :param freeze_at: int, index of the last layer to be frozen in the sequence of frozen layer (0 means freeze all but the
-    output layer, -1 means train all).
+    :param freeze_at: int, index of the last layer to be frozen (0 for training only the top layer).
     :param roi_heads: int, number of Region Of Interest Heads in the output layer of the model.
     """
     # register the datasets
@@ -158,4 +157,3 @@ if __name__ == '__main__':
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
         train(**args)
-

@@ -14,11 +14,17 @@ from utils import path_fixer, get_cfg
 from detectron2.utils.visualizer import Visualizer
 import argparse
 from termcolor import colored
+from typing import Union, Tuple
+from detectron2.config import CfgNode
+
+
 setup_logger()
 supported_formats = {
     'image': ['png', 'jpg', 'jpeg'],
     'video': ['avi', 'mp4', 'mov']
 }
+
+# noinspection PyUnresolvedReferences
 read_image = cv2.imread
 
 
@@ -28,7 +34,7 @@ def get_predictor(network: str or os.PathLike,
                   device: str = 'cuda',
                   output_dir: str = 'temp',
                   threshold: float = 0.7,
-                  return_cfg: bool = False) -> DefaultPredictor:
+                  return_cfg: bool = False) -> Union[DefaultPredictor, Tuple[DefaultPredictor, CfgNode]]:
     """Returns a DefaultPredictor object for the given model.
 
     Args:
@@ -91,7 +97,7 @@ def predict_on_video(video_object: str or os.PathLike,
     Applies object detection on a video and saves the resulting video to the specified output path.
 
     Args:
-        video_object (str or os.PathLike or np.ndarray): The path to the input video file or a numpy array containing the frames.
+        video_object (str or os.PathLike or np.ndarray): a path to the video file or numpy array containing the frames.
         predictor (DefaultPredictor): The object detection model to use.
         output_path (str or os.PathLike): The path to save the resulting video file.
         metadata (MetadataCatalog): Metadata about the input data.
@@ -290,7 +296,7 @@ def inference_manager(network: str or os.PathLike or DefaultPredictor,
     progress_bar_description = colored(f'Performing Inference on the Content of "{target_path}"', 'green')
 
     # Iterate through the list of file pairs
-    for index, (input_file, output_file) in tqdm(enumerate(file_pairs), total=len(file_pairs), desc=progress_bar_description):
+    for index, (input_file, output_file) in tqdm(enumerate(file_pairs), progress_bar_description, len(file_pairs)):
         # Perform inference on files
         predict_on_file(input_file, output_file, predictor, metadata, scale)
 

@@ -50,19 +50,19 @@ def get_ccpd2019_dataset():
                    if decode_file_name(file) is not None]
         return records
 
-    CCPD2019_DEFAULT = ImagesDataset(name='ccpd2019',
+    ccpd2019_default = ImagesDataset(name='ccpd2019',
                                      path=os.path.join('data', 'raw'),
                                      coco_file=None,
                                      urls={
                                          'CCPD2019.tar.xz':
                                              'https://drive.google.com/uc?id=1rdEsCUcIUaYOVRkx5IMTRNA7PcGMmSgc'},
                                      cache_directory=os.path.join('data', 'cache', 'ccpd_2019'))
-    CCPD2019_DEFAULT.generate_dataset_registration_info_params = {
-        'data_files_directory': CCPD2019_DEFAULT.path
+    ccpd2019_default.generate_dataset_registration_info_params = {
+        'data_files_directory': ccpd2019_default.path
     }
-    CCPD2019_DEFAULT.registration_info_generator = generate_ccpd2019_registration_file
+    ccpd2019_default.registration_info_generator = generate_ccpd2019_registration_file
 
-    return CCPD2019_DEFAULT
+    return ccpd2019_default
 
 
 def get_celeba_dataset():
@@ -111,7 +111,7 @@ def get_celeba_dataset():
             return dataset_records
 
     urls = {
-        'img_celba.7z': 'https://drive.google.com/drive/folders/1eyJ52hX5KpniS9MB-MFXBRtJUDpeldqx?usp=share_link',
+        'img_celeba.7z': 'https://drive.google.com/drive/folders/1eyJ52hX5KpniS9MB-MFXBRtJUDpeldqx?usp=share_link',
         'list_bbox_celeba.txt': 'https://drive.google.com/uc?id=19X0GE3kP6tNatS9kZ2-Ks2_OeeCtqeFI'
     }
 
@@ -210,6 +210,80 @@ def get_wider_face_dataset(split):
 
 
 def get_fddb_dataset():
+    def get_bbox(details):
+        """
+        Calculates the bounding box coordinates from the given face details.
+
+        Args:
+            details (list): List containing face details.
+
+        Returns:
+            tuple: Bounding box coordinates (x1, y1, x2, y2).
+        """
+        # Extract the face details and convert them to integers
+        face = [int(float(details[j])) for j in range(5)]
+
+        # Calculate the center coordinates of the bounding box
+        centre = (face[3], face[4])
+
+        # Calculate the lengths of the axes of the bounding box
+        axes_length = (face[1], face[0])
+
+        # Calculate the corner coordinates of the bounding box
+        x1, y1 = centre[0] + axes_length[0], centre[1] - axes_length[1]
+        x2, y2 = centre[0] - axes_length[0], centre[1] + axes_length[1]
+
+        # Return the bounding box coordinates
+        return x1, y1, x2, y2
+
+    def extract_file_info(data_directory,
+                          text_file: str or os.PathLike,
+                          create_rec: Callable,
+                          progress_bar):
+        """
+        Extracts file information from a text file and generates records based on the information.
+
+        Args:
+            data_directory (str or os.PathLike): Directory path of the data files.
+            text_file (str or os.PathLike): Path to the text file containing file information.
+            create_rec (Callable): A function that creates a record based on given parameters.
+            progress_bar: A progress bar object used to track progress.
+
+        Returns:
+            list: List of records generated from the file information.
+        """
+        # Read the text file and split it into lines
+        with open(text_file) as file_handle:
+            info = file_handle.read().split('\n')
+            info = [item for item in info if item != '\n']
+
+        image_index = 0
+        records = []
+        for index, line in enumerate(info):
+            # Construct the full path of the image file
+            path = path_fixer(os.path.join(data_directory, line)) + '.jpg'
+
+            coordinates = []
+            if os.path.exists(path):
+                num_faces = int(info[index + 1])
+                faces = info[index + 2: index + 2 + num_faces]
+                for face in faces:
+                    details = face.split()
+                    # Extract the bounding box coordinates using the get_bbox function
+                    x1, y1, x2, y2 = get_bbox(details=details)
+                    coordinates.extend([x1, y1, x2, y2])
+
+                # Create a record using the provided create_record function
+                record = create_rec(image_path=path,
+                                    bounding_boxes=coordinates,
+                                    category_id=0,
+                                    index=image_index)
+                image_index += 1
+                progress_bar.update()
+                records.append(record)
+
+        return records
+
     def generate_dataset_registration_info(data_directory: str or os.PathLike):
         """
         Generates dataset registration information and saves it as a JSON file.
@@ -217,81 +291,6 @@ def get_fddb_dataset():
         Args:
             data_directory (str or os.PathLike): Directory path of the dataset.
         """
-
-        def get_bbox(details):
-            """
-            Calculates the bounding box coordinates from the given face details.
-
-            Args:
-                details (list): List containing face details.
-
-            Returns:
-                tuple: Bounding box coordinates (x1, y1, x2, y2).
-            """
-            # Extract the face details and convert them to integers
-            face = [int(float(details[j])) for j in range(5)]
-
-            # Calculate the center coordinates of the bounding box
-            centre = (face[3], face[4])
-
-            # Calculate the lengths of the axes of the bounding box
-            axes_length = (face[1], face[0])
-
-            # Calculate the corner coordinates of the bounding box
-            x1, y1 = centre[0] + axes_length[0], centre[1] - axes_length[1]
-            x2, y2 = centre[0] - axes_length[0], centre[1] + axes_length[1]
-
-            # Return the bounding box coordinates
-            return x1, y1, x2, y2
-
-        def extract_file_info(data_directory,
-                              text_file: str or os.PathLike,
-                              create_rec: Callable,
-                              progress_bar):
-            """
-            Extracts file information from a text file and generates records based on the information.
-
-            Args:
-                data_directory (str or os.PathLike): Directory path of the data files.
-                text_file (str or os.PathLike): Path to the text file containing file information.
-                create_rec (Callable): A function that creates a record based on given parameters.
-                progress_bar: A progress bar object used to track progress.
-
-            Returns:
-                list: List of records generated from the file information.
-            """
-            # Read the text file and split it into lines
-            with open(text_file) as file_handle:
-                info = file_handle.read().split('\n')
-                info = [item for item in info if item != '\n']
-
-            image_index = 0
-            records = []
-            for index, line in enumerate(info):
-                # Construct the full path of the image file
-                path = path_fixer(os.path.join(data_directory, line)) + '.jpg'
-
-                coordinates = []
-                if os.path.exists(path):
-                    num_faces = int(info[index + 1])
-                    faces = info[index + 2: index + 2 + num_faces]
-                    for face in faces:
-                        details = face.split()
-                        # Extract the bounding box coordinates using the get_bbox function
-                        x1, y1, x2, y2 = get_bbox(details=details)
-                        coordinates.extend([x1, y1, x2, y2])
-
-                    # Create a record using the provided create_record function
-                    record = create_rec(image_path=path,
-                                        bounding_boxes=coordinates,
-                                        category_id=0,
-                                        index=image_index)
-                    image_index += 1
-                    progress_bar.update()
-                    records.append(record)
-
-            return records
-
         # Calculate the total progress based on the number of files to process
         total_progress = sum([len(open(os.path.join(data_directory, 'FDDB-folds', file)).read().split('\n'))
                               for file in os.listdir(os.path.join(data_directory, 'FDDB-folds'))
@@ -341,9 +340,7 @@ def main(dataset_name: str,
          extract: bool,
          splits: list,
          proportions: list,
-         clear_cache: bool,
-         cache_dir: str or os.PathLike,
-         data_dir: str or os.PathLike):
+         clear_cache: bool):
     assert dataset_name.lower() in datasets.keys(), f'name not found,' \
                                                     f' expected one of {datasets.keys()} got {dataset_name}'
 
@@ -377,8 +374,6 @@ if __name__ == '__main__':
     splits_help = 'splits (optional) paths to JSON files in which data splits information will be saved in COCO format'
     proportions_help = 'proportions (optional) use to determine the proportion of each split w.r.t original dataset'
     clear_cache_help = 'clear_cache (optional), use this flag to delete downloaded dataset files after extraction'
-    cache_dir_help = 'cache_dir (optional), specify where to download dataset files, default "data/cache/'
-    data_dir_help = 'data_dir (optional), specify where to extract/find the datasets, default "data/raw"'
     usage = f"""
     python src/dataset_instantiation.py --{dataset_name_help}\n
                                         --{download_help}\n
@@ -386,8 +381,6 @@ if __name__ == '__main__':
                                         --{splits_help}\n
                                         --{proportions_help}\n
                                         --{clear_cache_help}\n
-                                        --{cache_dir_help}\n
-                                        --{data_dir_help}\n
     """
     parser = argparse.ArgumentParser(usage=usage)
     parser.add_argument('--dataset_name', type=str, required=True, help=dataset_name_help)
@@ -396,7 +389,5 @@ if __name__ == '__main__':
     parser.add_argument('--splits', nargs='+', help=splits_help)
     parser.add_argument('--proportions', nargs='+', type=float, default=None, help=proportions_help)
     parser.add_argument('--clear_cache', action='store_true', help=clear_cache_help)
-    parser.add_argument('--cache_dir', default=None, help=cache_dir_help)
-    parser.add_argument('--data_dir', default=None, help=data_dir_help)
     args = vars(parser.parse_args())
     main(**args)

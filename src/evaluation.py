@@ -17,7 +17,7 @@ def evaluate(network: str or os.PathLike,
     Evaluates a trained object detection model on a test dataset.
 
     Args:
-        yaml_url (str or os.PathLike): The URL or path to the YAML file containing the model configuration.
+        network (str): the name of the network from which a model will be instantiated.
         model_weights (str or os.PathLike): The path to the file containing the trained model weights.
         test_data_file (str or os.PathLike): The path to the JSON file containing the test data in COCO format.
         output_dir (str or os.PathLike): The path to the directory where the output will be saved.

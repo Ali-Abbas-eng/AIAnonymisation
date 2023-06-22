@@ -1,10 +1,18 @@
+import copy
+
+import numpy as np
+import torch
 from utils import download, extract, modify_record
 import os
 import json
-from typing import Union, Callable
+from typing import Callable
 from os import PathLike
 import shutil
 import random
+from utils import recompute_bounding_boxes
+from detectron2.data import transforms
+from detectron2.data import detection_utils
+from typing import List, Union
 
 
 class ImagesDataset:
@@ -124,6 +132,7 @@ class ImagesDataset:
                 # noinspection PyTypeChecker
                 # extract the file (if it's one of the supported file types)
                 try:
+                    # noinspection PyTypeChecker
                     extract(path=file, output_directory=self.path)
                 except KeyError:
                     print(f'Looks like one of the contents of the directory {self.cache_directory} is not supported, '
@@ -177,3 +186,47 @@ class ImagesDataset:
                 start_index = len(subset)
                 # Write the new subset to the provided path
                 json.dump(subset, open(split, 'w'))
+
+
+def custom_data_mapper(dataset_dict):
+    """
+    Re-Computes the bounding boxes after performing the transformations in the pipeline
+    Arguments:
+        dataset_dict: dict, a dictionary representing the data point of interest
+    """
+    # Deep copy of the dataset dict since it will be changed later (recommended in the documentation)
+    dataset_dict = copy.deepcopy(dataset_dict)
+
+    # Get the original dimensions of the image
+    original_size = (dataset_dict['height'], dataset_dict['width'])
+
+    # Set the new size of the image
+    shortest_edge_range = [256, 512]
+
+    # Read the image
+    image = detection_utils.read_image(dataset_dict['file_name'], format='BGR')
+
+    # Augment the input
+    aug_input = transforms.AugInput(image)
+
+    # Create the transform
+    transform = transforms.ResizeShortestEdge(shortest_edge_range)(aug_input)
+
+    # Get the image
+    image = torch.from_numpy(aug_input.image.transpose(2, 0, 1))
+
+    # Save the new image size
+    new_size = image.shape[1:3]
+
+    # Loop through the annotations of the instances in the current data point
+    for annotation in dataset_dict['annotations']:
+        # Recompute the bounding boxes according to the new image size
+        annotation['bbox'] = recompute_bounding_boxes(annotation['bbox'], original_size, new_size)
+
+    # Set the image value
+    dataset_dict['image'] = image
+
+    # Set the instances
+    dataset_dict['instances'] = detection_utils.annotations_to_instances(dataset_dict['annotations'], new_size)
+
+    return dataset_dict

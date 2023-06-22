@@ -18,30 +18,6 @@ from detectron2.config import get_cfg as base_configurations
 from detectron2.model_zoo import get_config_file, get_checkpoint_url
 
 
-def pre_process_data(image_path: str, bounding_boxes: list) -> list:
-    """
-    Pre-processes an image by resizing it and its corresponding bounding boxes.
-
-    Args:
-        image_path (str): The path to the image file.
-        bounding_boxes (list): A list of bounding boxes in the format [x_min, y_min, x_max, y_max].
-
-    Returns:
-        list: A list of updated bounding boxes.
-    """
-    # Load the image from the given path
-    image = plt.imread(image_path)
-
-    # Resize the image and its corresponding bounding boxes
-    image, bounding_boxes = adaptive_resize(image, bounding_boxes, new_size=IMAGE_SIZE)
-
-    # Save the resized image to the same path
-    plt.imsave(image_path, image)
-
-    # Return the updated bounding boxes
-    return bounding_boxes
-
-
 def plot_images(images, show: bool):
     """
     Plots the input images using matplotlib.
@@ -113,6 +89,7 @@ def visualize_sample(info_file: str, n_samples: int = 8, show=True, save_path: s
         v = v.draw_dataset_dict(record)
 
         # Add the image to the list
+        # noinspection PyUnresolvedReferences
         images.append(cv2.resize(v.get_image()[:, :, ::-1], (256, 256)))
 
     # Get annotated images using matplotlib imshow function
@@ -138,23 +115,12 @@ def adaptive_resize(image, bounding_boxes, new_size):
     # Get the old size of the image
     old_size = image.shape[:2]
 
-    # Calculate the scaling factor for each dimension
-    scale_x = new_size[0] / old_size[0]
-    scale_y = new_size[1] / old_size[1]
-
-    # Resize the image
+    # Resize image
     # noinspection PyUnresolvedReferences
     resized_image = cv2.resize(image, new_size[::-1])
 
-    # Update the bounding box coordinates
-    new_bounding_boxes = []
-    for i in range(0, len(bounding_boxes), 4):
-        bbox = bounding_boxes[i: i + 4]
-        x_min = int(bbox[0] * scale_x)
-        y_min = int(bbox[1] * scale_y)
-        x_max = int(bbox[2] * scale_x)
-        y_max = int(bbox[3] * scale_y)
-        new_bounding_boxes.extend([x_min, y_min, x_max, y_max])
+    # Compute new bounding boxes locations
+    new_bounding_boxes = recompute_bounding_boxes(old_size, bounding_boxes, new_size)
 
     return resized_image, new_bounding_boxes
 
@@ -662,3 +628,27 @@ def get_cfg(network_base_name: str,
 
     # Return the final configuration node
     return cfg
+
+
+def recompute_bounding_boxes(bounding_boxes, old_size, new_size):
+    # Update the bounding box coordinates
+    new_bounding_boxes = []
+    for i in range(0, len(bounding_boxes), 4):
+        bbox = bounding_boxes[i: i + 4]
+        new_bounding_box = recompute_bounding_box(bbox, old_size, new_size)
+        new_bounding_boxes.extend(new_bounding_box)
+    return new_bounding_boxes
+
+
+def recompute_bounding_box(bounding_box, old_size, new_size):
+    # Calculate the scaling factor for each dimension
+    scale_x = new_size[0] / old_size[0]
+    scale_y = new_size[1] / old_size[1]
+
+    # Update the bounding box coordinates
+    x_min = int(bounding_box[0] * scale_x)
+    y_min = int(bounding_box[1] * scale_y)
+    x_max = int(bounding_box[2] * scale_x)
+    y_max = int(bounding_box[3] * scale_y)
+
+    return [x_min, y_min, x_max, y_max]

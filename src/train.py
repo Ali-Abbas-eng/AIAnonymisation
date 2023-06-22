@@ -4,8 +4,12 @@ import argparse
 import os
 from detectron2.engine.defaults import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
+from detectron2.data import build_detection_train_loader
 from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
+from dataset import custom_data_mapper
 import torch
+from detectron2.data import transforms
+from utils import path_fixer
 
 
 class Trainer(DefaultTrainer):
@@ -51,6 +55,11 @@ class Trainer(DefaultTrainer):
             lr=cfg.SOLVER.BASE_LR,
             weight_decay=cfg.SOLVER.WEIGHT_DECAY,
         )
+
+    @classmethod
+    def build_train_loader(cls, cfg):
+
+        return build_detection_train_loader(cfg, mapper=custom_data_mapper)
 
 
 def train(network_base_name: str,
@@ -104,6 +113,21 @@ def train(network_base_name: str,
                              output_directory=output_directory,
                              min_learning_rate=min_learning_rate,
                              roi_heads=roi_heads)
+    trial_information = f'Network: {network_base_name}\n' \
+                        f'Train Dataset(s): {train_files}\n' \
+                        f'Test Dataset(s):{valid_files}\n' \
+                        f'Decay Gamma: {decay_gamma}\n' \
+                        f'Decay Frequency: {decay_freq}\n' \
+                        f'Initial Learning Rate: {initial_learning_rate}\n' \
+                        f'Train Steps: {train_steps}\n' \
+                        f'Evaluation Frequency: {eval_steps}\n' \
+                        f'Batch Size: {batch_size}\n' \
+                        f'Freeze At: {freeze_at}\n' \
+                        f'Minimum Learning Rate: {min_learning_rate}\n' \
+                        f'Region of Interest (ROI) Heads: {roi_heads}\n'
+    with open(os.path.join(path_fixer(configurations.OUTPUT_DIR), 'Trial Details.txt'), 'w') as file_handle:
+        file_handle.write(trial_information)
+        file_handle.close()
 
     # Create trainer object with configurations
     trainer = Trainer(configurations)

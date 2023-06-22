@@ -213,7 +213,7 @@ def custom_data_mapper(dataset_dict):
     transform = transforms.ResizeShortestEdge(shortest_edge_range)(aug_input)
 
     # Get the image
-    image = torch.from_numpy(aug_input.image.transpose(2, 0, 1))
+    image = torch.from_numpy(aug_input.image.transpose(2, 0, 1).copy())
 
     # Save the new image size
     new_size = image.shape[1:3]

@@ -6,9 +6,10 @@ from detectron2.engine.defaults import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator
 from detectron2.data import build_detection_train_loader
 from detectron2.solver.build import get_default_optimizer_params, maybe_add_gradient_clipping
-from dataset import custom_data_mapper
+import dataset
 import torch
-from utils import path_fixer
+from utils import path_fixer, extract_dataset_name
+from detectron2.data import transforms
 
 
 class Trainer(DefaultTrainer):
@@ -17,14 +18,15 @@ class Trainer(DefaultTrainer):
     """
 
     @classmethod
-    def build_evaluator(cls, cfg, dataset_name, output_folder: str = None):
+    def build_evaluator(cls, cfg, dataset_name, output_folder: str = None, visualise: bool = False):
         """
         A class method that builds a COCOEvaluator object for evaluation.
 
         Parameters:
-            cfg (CfgNode): A configuration object.
-            dataset_name (str): The name of the dataset to be evaluated.
-            output_folder (str): The directory to save evaluation results. If None, it is saved in cfg.OUTPUT_DIR/eval.
+        :param cfg: (CfgNode), A configuration.
+        :param dataset_name: (str), The name of the dataset to be evaluated.
+        :param output_folder:  (str or os.PathLike), The directory to save evaluation results.
+         If None, it is saved in cfg.OUTPUT_DIR/eval.
 
         Returns:
             evaluator (COCOEvaluator): A COCOEvaluator object for evaluation.
@@ -58,8 +60,9 @@ class Trainer(DefaultTrainer):
 
     @classmethod
     def build_train_loader(cls, cfg):
-
-        return build_detection_train_loader(cfg, mapper=custom_data_mapper)
+        augmentations = [transforms.ResizeShortestEdge(short_edge_length=[256, 512])]
+        dataset_mapper = dataset.CustomDatasetMapper(augmentations)
+        return build_detection_train_loader(cfg, mapper=dataset_mapper)
 
 
 def train(network_base_name: str,
@@ -74,7 +77,8 @@ def train(network_base_name: str,
           decay_gamma: float,
           min_learning_rate: float,
           freeze_at: int,
-          roi_heads: int):
+          roi_heads: int,
+          visualise: bool):
     """
     Trains a model using the specified configurations.
     :param network_base_name: The URL to the YAML configuration file.
@@ -90,11 +94,14 @@ def train(network_base_name: str,
     :param min_learning_rate: float, the minimum value for the learning rate.
     :param freeze_at: int, index of the last layer to be frozen (0 for training only the top layer).
     :param roi_heads: int, number of Region Of Interest Heads in the output layer of the model.
+    :param visualise: whither to plot images during loading (default off), this is for testing purposes only.
     """
     # register the datasets
-    train_sets = [file.split('/')[-1].replace('.json', '') for file in train_files]
-    valid_sets = [file.split('/')[-1].replace('.json', '') for file in valid_files]
+    train_sets = [extract_dataset_name(file) for file in train_files]
+    valid_sets = [extract_dataset_name(file) for file in valid_files]
 
+    dataset.VISUALISE = visualise
+    dataset.DATASET_NAMES = [*train_sets, *valid_sets]
     [register_dataset(file, file.split('/')[-1].replace('.json', '')) for file in [*train_files, *valid_files]]
     yaml_url = f'COCO-Detection/{network_base_name}.yaml'
     # Get configurations from specified parameters
@@ -152,7 +159,7 @@ if __name__ == '__main__':
     parser.add_argument('--min_learning_rate', type=float, default=1e-5)
     parser.add_argument('--freeze_at', type=int, default=0)
     parser.add_argument('--roi_heads', type=int, default=256)
-
+    parser.add_argument('--visualise', action='store_true')
     args = vars(parser.parse_args())
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')

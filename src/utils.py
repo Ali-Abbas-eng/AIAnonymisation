@@ -162,18 +162,13 @@ def get_annotations(bounding_boxes, category_id):
         # Get the bounding box coordinates
         x_min, y_min, x_max, y_max = bounding_boxes[i: i + 4]
 
-        # Create the polygon and flatten it
-        poly = [
-            (x_min, y_min), (x_max, y_min),
-            (x_max, y_max), (x_min, y_max)
-        ]
-        poly = list(itertools.chain.from_iterable(poly))
+        segmentation = approximate_segmentation(x_min, y_min, x_max, y_max)
 
         # Create the annotation dictionary and append it to the annotations list
         annotation = {
             'bbox': [x_min, y_min, x_max, y_max],
             'bbox_mode': BoxMode.XYXY_ABS,
-            'segmentation': [poly],
+            'segmentation': segmentation,
             'category_id': category_id,
             'iscrowd': 0
         }
@@ -630,6 +625,16 @@ def get_cfg(network_base_name: str,
     return cfg
 
 
+def approximate_segmentation(x_min, y_min, x_max, y_max):
+    # Create the polygon and flatten it
+    poly = [
+        (x_min, y_min), (x_max, y_min),
+        (x_max, y_max), (x_min, y_max)
+    ]
+    poly = list(itertools.chain.from_iterable(poly))
+    return [poly]
+
+
 def recompute_bounding_boxes(bounding_boxes, old_size, new_size):
     # Update the bounding box coordinates
     new_bounding_boxes = []
@@ -652,3 +657,16 @@ def recompute_bounding_box(bounding_box, old_size, new_size):
     y_max = int(bounding_box[3] * scale_y)
 
     return [x_min, y_min, x_max, y_max]
+
+
+def extract_dataset_name(coco_format_json_file):
+    """
+    A static rule of extracting the dataset name (since each dataset must have a corresponding json file which holds
+    the dataset details in COCO format) the base name of the file will be considered as the only valid dataset name.
+    Arguments:
+        :param coco_format_json_file: str or os.PathLike, the path to the json file representing the dataset.
+    Returns:
+        str, the corresponding name of the dataset.
+    """
+    dataset_name = coco_format_json_file.split('/')[-1].replace('.json', '')
+    return dataset_name

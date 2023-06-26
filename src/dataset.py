@@ -1,4 +1,3 @@
-import copy
 import torch
 from utils import download, extract, modify_record
 import os
@@ -7,10 +6,10 @@ from typing import Callable
 from os import PathLike
 import shutil
 import random
-from utils import recompute_bounding_boxes
+from utils import recompute_bounding_boxes, approximate_segmentation
 from detectron2.data import transforms
 from detectron2.data import detection_utils
-from typing import Union
+from typing import Union, List
 
 
 class ImagesDataset:
@@ -109,6 +108,8 @@ class ImagesDataset:
         """
         # get the list of dictionaries
         records = self.registration_info_generator(**self.generate_dataset_registration_info_params)
+        records['DATASET_NAME'] = self.name
+
         # Dump the dataset_dicts to the info file
         json.dump(records, open(self.coco_file, 'w'))
 
@@ -186,45 +187,47 @@ class ImagesDataset:
                 json.dump(subset, open(split, 'w'))
 
 
-def custom_data_mapper(dataset_dict):
-    """
-    Re-Computes the bounding boxes after performing the transformations in the pipeline
-    Arguments:
-        dataset_dict: dict, a dictionary representing the data point of interest
-    """
-    # Deep copy of the dataset dict since it will be changed later (recommended in the documentation)
-    dataset_dict = copy.deepcopy(dataset_dict)
+class CustomDatasetMapper:
+    def __init__(self, augmentations, visualise: bool = False):
+        self.visualise = visualise
+        self.augmentations = augmentations
 
-    # Get the original dimensions of the image
-    original_size = (dataset_dict['height'], dataset_dict['width'])
+    def __call__(self, dataset_dict: dict):
+        """
+            Re-Computes the bounding boxes after performing the transformations in the pipeline
+            Arguments:
+                dataset_dict: dict, a dictionary representing the data point of interest
+            """
+        # # Deep copy of the dataset dict since it will be changed later (recommended in the documentation)
+        # dataset_dict = copy.deepcopy(dataset_dict)
 
-    # Set the new size of the image
-    shortest_edge_range = [256, 512]
+        # Get the original dimensions of the image
+        original_size = (dataset_dict['height'], dataset_dict['width'])
 
-    # Read the image
-    image = detection_utils.read_image(dataset_dict['file_name'], format='BGR')
+        # Read the image
+        image = detection_utils.read_image(dataset_dict['file_name'], format='BGR')
+        image_copy = image.copy()
 
-    # Augment the input
-    aug_input = transforms.AugInput(image)
+        image = transforms.apply_augmentations(self.augmentations, image)[0]
+        image_to_plot = image.copy()
+        assert image_to_plot.shape != image_copy.shape
 
-    # Create the transform
-    transforms.ResizeShortestEdge(shortest_edge_range)(aug_input)
+        # Get the image
+        image = torch.from_numpy(image.transpose((2, 0, 1)).copy())
 
-    # Get the image
-    image = torch.from_numpy(aug_input.image.transpose((2, 0, 1)).copy())
+        # Save the new image size
+        new_size = image.shape[1:3]
 
-    # Save the new image size
-    new_size = image.shape[1:3]
+        # Loop through the annotations of the instances in the current data point
+        for annotation in dataset_dict['annotations']:
+            # Recompute the bounding boxes according to the new image size
+            annotation['bbox'] = recompute_bounding_boxes(annotation['bbox'], original_size, new_size)
+            annotation['segmentation'] = approximate_segmentation(*annotation['bbox'])
 
-    # Loop through the annotations of the instances in the current data point
-    for annotation in dataset_dict['annotations']:
-        # Recompute the bounding boxes according to the new image size
-        annotation['bbox'] = recompute_bounding_boxes(annotation['bbox'], original_size, new_size)
+        # Set the image value
+        dataset_dict['image'] = image
 
-    # Set the image value
-    dataset_dict['image'] = image
+        # Set the instances
+        dataset_dict['instances'] = detection_utils.annotations_to_instances(dataset_dict['annotations'], new_size)
 
-    # Set the instances
-    dataset_dict['instances'] = detection_utils.annotations_to_instances(dataset_dict['annotations'], new_size)
-
-    return dataset_dict
+        return dataset_dict
